@@ -1,0 +1,3165 @@
+
+
+var strpatch="";
+var renoidname="";
+var renoid=null;
+var evlist=null;
+var proll=null;
+var mousepress=0;
+var canvas;
+var ctx;
+var audioctx;
+var scrproc;
+var dummysrc;
+var dummybuf;
+var paramtranspose=0;
+var paramformant=0;
+var paramhuman=20;
+var paramkeep=0;
+var paramvol=80;
+var paramatt=50;
+var paramporta=50;
+var paramvibdepth=15;
+var paramvibrate=50;
+var paramvibdelay=40;
+var bufsize=1024;
+var canvasw=870;
+var canvash=330;
+var noteheight=14;
+var nheight=16;
+var rheight=24;
+var maxmeas=255;
+var mode=0;
+var curzoom=8;
+var xzoom=curzoom/128;
+var xgrid=120;
+var pxoff=200;
+var editmode="a";
+var clipboard=[];
+var exporting=0;
+var file=null;
+var filemode=0;
+var mobilemode=0;
+var dummystart=0;
+var objurl=null;
+
+var keytopronmap=[
+  ["が"],["ぎ","ぎょ","ぎぇ","ぎゅ",null,"ぎゃ"],["ぐ"],["げ"],["ご"],	null,null,
+  ["ざ"],["じ","じょ","じぇ","じゅ",null,"じゃ"],["ず"],["ぜ"],["ぞ"],
+  ["だ"],["でぃ",null,null,"でゅ",null,null],["どぅ"],["で"],["ど"],		null,null,
+  ["ば"],["び","びょ","びぇ","びゅ",null,"びゃ"],["ぶ"],["べ"],["ぼ"],
+  ["ぱ"],["ぴ","ぴょ","ぴぇ","ぴゅ",null,"ぴゃ"],["ぷ"],["ぺ"],["ぽ"],	null,null,
+  ["あ","ぉあ","ぇあ","ぅあ","ぃあ",null],["い","ぉい","ぇい","ぅい",null,"ぁい"],["う","ぉう","ぇう",null,"ぃう","ぁう"],["え","ぉえ",null,"ぅえ","ぃえ","ぁえ"],["お",null,"ぇお","ぅお","ぃお","ぁお"],
+  ["か"],["き","きょ","きぇ","きゅ",null,"きゃ"],["く"],["け"],["こ"],	null,null,
+  ["さ"],["し","しょ","しぇ","しゅ",null,"しゃ"],["す"],["せ"],["そ"],
+  ["た"],["ち","ちょ","ちぇ","ちゅ",null,"ちゃ"],["つ","つぉ","つぇ",null,"つぃ","つぁ"],["て",null,null,null,"てぃ",null],["と",null,null,"とぅ",null,null],	null,null,
+  ["な"],["に","にょ","にぇ","にゅ",null,"にゃ"],["ぬ"],["ね"],["の"],
+  ["は"],["ひ","ひょ","ひぇ","ひゅ",null,"ひゃ"],["ふ","ふぉ","ふぇ",null,"ふぃ","ふぁ"],["へ"],["ほ"],	null,null,
+  ["ま"],["み","みょ","みぇ","みゅ",null,"みゃ"],["む"],["め"],["も"],
+  ["ら"],["り","りょ","りぇ","りゅ",null,"りゃ"],["る"],["れ"],["ろ"],	null,null,
+  ["や"],["ゆ"],["いぇ"],["よ"],["わ"],
+  ["ん","ぉん","ぇん","ぅん","ぃん","ぁん"],
+];
+var pronmapk={
+  "・":"・",
+  "あ":"あ","い":"い","う":"う","え":"え","お":"お",
+  "か":"か","き":"き","く":"く","け":"け","こ":"こ",
+  "が":"が","ぎ":"ぎ","ぐ":"ぐ","げ":"げ","ご":"ご",
+  "さ":"さ","し":"し","す":"す","せ":"せ","そ":"そ",
+  "ざ":"ざ","じ":"じ","ず":"ず","ぜ":"ぜ","ぞ":"ぞ",
+  "た":"た","ち":"ち","つ":"つ","て":"て","と":"と",
+  "だ":"だ","でぃ":"でぃ","どぅ":"どぅ","で":"で","ど":"ど",
+  "な":"な","に":"に","ぬ":"ぬ","ね":"ね","の":"の",
+  "は":"は","ひ":"ひ","ふ":"ふ","へ":"へ","ほ":"ほ",
+  "ば":"ば","び":"び","ぶ":"ぶ","べ":"べ","ぼ":"ぼ",
+  "ぱ":"ぱ","ぴ":"ぴ","ぷ":"ぷ","ぺ":"ぺ","ぽ":"ぽ",
+  "ま":"ま","み":"み","む":"む","め":"め","も":"も",
+  "や":"や","ゆ":"ゆ","いぇ":"いぇ","よ":"よ",
+  "ら":"ら","り":"り","る":"る","れ":"れ","ろ":"ろ",
+  "わ":"わ","ん":"ん",
+  "ぃあ":"ぃあ","ぅあ":"ぅあ","ぇあ":"ぇあ","ぉあ":"ぉあ",
+  "いぁ":"ぃあ","うぁ":"ぅあ","えぁ":"ぇあ","おぁ":"ぉあ",
+  "ぁい":"ぁい","ぅい":"ぅい","ぇい":"ぇい","ぉい":"ぉい",
+  "あぃ":"ぁい","うぃ":"ぅい","えぃ":"ぇい","おぃ":"ぉい",
+  "ぁう":"ぁう","ぃう":"ぃう","ぇう":"ぇう","ぉう":"ぉう",
+  "あぅ":"ぁう","いぅ":"ぃう","えぅ":"ぇう","おぅ":"ぉう",
+  "ぁえ":"ぁえ","ぃえ":"ぃえ","ぅえ":"ぅえ","ぉえ":"ぉえ",
+  "あぇ":"ぁえ","うぇ":"ぅえ","おぇ":"ぉえ",
+  "ぁお":"ぁお","ぃお":"ぃお","ぅお":"ぅお","ぇお":"ぇお",
+  "きゃ":"きゃ","きゅ":"きゅ","きぇ":"きぇ","きょ":"きょ",
+  "ぎゃ":"ぎゃ","ぎゅ":"ぎゅ","ぎぇ":"ぎぇ","ぎょ":"ぎょ",
+  "しゃ":"しゃ","しゅ":"しゅ","しぇ":"しぇ","しょ":"しょ",
+  "じゃ":"じゃ","じゅ":"じゅ","じぇ":"じぇ","じょ":"じょ",
+  "ちゃ":"ちゃ","ちゅ":"ちゅ","ちぇ":"ちぇ","ちょ":"ちょ",
+  "つぁ":"つぁ","つぃ":"つぃ","つぇ":"つぇ","つぉ":"つぉ",
+  "てぃ":"てぃ","でゅ":"でゅ","とぅ":"とぅ",
+  "にゃ":"にゃ","にゅ":"にゅ","にぇ":"にぇ","にょ":"にょ",
+  "ひゃ":"ひゃ","ひゅ":"ひゅ","ひぇ":"ひぇ","ひょ":"ひょ",
+  "びゃ":"びゃ","びゅ":"びゅ","びぇ":"びぇ","びょ":"びょ",
+  "ぴゃ":"ぴゃ","ぴゅ":"ぴゅ","ぴぇ":"ぴぇ","ぴょ":"ぴょ",
+  "ふぁ":"ふぁ","ふぃ":"ふぃ","ふぇ":"ふぇ","ふぉ":"ふぉ",
+  "みゃ":"みゃ","みゅ":"みゅ","みぇ":"みぇ","みょ":"みょ",
+  "りゃ":"りゃ","りゅ":"りゅ","りぇ":"りぇ","りょ":"りょ",
+  "ぁん":"ぁん","ぃん":"ぃん","ぅん":"ぅん","ぇん":"ぇん","ぉん":"ぉん",
+  "ゐ":"ぅい","ゑ":"ぅえ","を":"ぅお",
+};
+var pronmap={
+  "・":"・",
+  "あ":"あ","い":"い","う":"う","え":"え","お":"お",
+  "か":"か","き":"き","く":"く","け":"け","こ":"こ",
+  "が":"が","ぎ":"ぎ","ぐ":"ぐ","げ":"げ","ご":"ご",
+  "さ":"さ","し":"し","す":"す","せ":"せ","そ":"そ",
+  "ざ":"ざ","じ":"じ","ず":"ず","ぜ":"ぜ","ぞ":"ぞ",
+  "た":"た","ち":"ち","つ":"つ","て":"て","と":"と",
+  "だ":"だ","でぃ":"でぃ","どぅ":"どぅ","で":"で","ど":"ど",
+  "な":"な","に":"に","ぬ":"ぬ","ね":"ね","の":"の",
+  "は":"は","ひ":"ひ","ふ":"ふ","へ":"へ","ほ":"ほ",
+  "ば":"ば","び":"び","ぶ":"ぶ","べ":"べ","ぼ":"ぼ",
+  "ぱ":"ぱ","ぴ":"ぴ","ぷ":"ぷ","ぺ":"ぺ","ぽ":"ぽ",
+  "ま":"ま","み":"み","む":"む","め":"め","も":"も",
+  "や":"や","ゆ":"ゆ","いぇ":"いぇ","よ":"よ",
+  "ら":"ら","り":"り","る":"る","れ":"れ","ろ":"ろ",
+  "わ":"わ","ん":"ん",
+  "ぃあ":"ぃあ","ぅあ":"ぅあ","ぇあ":"ぇあ","ぉあ":"ぉあ",
+  "いぁ":"ぃあ","うぁ":"ぅあ","えぁ":"ぇあ","おぁ":"ぉあ",
+  "ぁい":"ぁい","ぅい":"ぅい","ぇい":"ぇい","ぉい":"ぉい",
+  "あぃ":"ぁい","うぃ":"ぅい","えぃ":"ぇい","おぃ":"ぉい",
+  "ぁう":"ぁう","ぃう":"ぃう","ぇう":"ぇう","ぉう":"ぉう",
+  "あぅ":"ぁう","いぅ":"ぃう","えぅ":"ぇう","おぅ":"ぉう",
+  "ぁえ":"ぁえ","ぃえ":"ぃえ","ぅえ":"ぅえ","ぉえ":"ぉえ",
+  "あぇ":"ぁえ","うぇ":"ぅえ","おぇ":"ぉえ",
+  "ぁお":"ぁお","ぃお":"ぃお","ぅお":"ぅお","ぇお":"ぇお",
+  "きゃ":"きゃ","きゅ":"きゅ","きぇ":"きぇ","きょ":"きょ",
+  "ぎゃ":"ぎゃ","ぎゅ":"ぎゅ","ぎぇ":"ぎぇ","ぎょ":"ぎょ",
+  "しゃ":"しゃ","しゅ":"しゅ","しぇ":"しぇ","しょ":"しょ",
+  "じゃ":"じゃ","じゅ":"じゅ","じぇ":"じぇ","じょ":"じょ",
+  "ちゃ":"ちゃ","ちゅ":"ちゅ","ちぇ":"ちぇ","ちょ":"ちょ",
+  "つぁ":"つぁ","つぃ":"つぃ","つぇ":"つぇ","つぉ":"つぉ",
+  "てぃ":"てぃ","でゅ":"でゅ","とぅ":"とぅ",
+  "にゃ":"にゃ","にゅ":"にゅ","にぇ":"にぇ","にょ":"にょ",
+  "ひゃ":"ひゃ","ひゅ":"ひゅ","ひぇ":"ひぇ","ひょ":"ひょ",
+  "びゃ":"びゃ","びゅ":"びゅ","びぇ":"びぇ","びょ":"びょ",
+  "ぴゃ":"ぴゃ","ぴゅ":"ぴゅ","ぴぇ":"ぴぇ","ぴょ":"ぴょ",
+  "ふぁ":"ふぁ","ふぃ":"ふぃ","ふぇ":"ふぇ","ふぉ":"ふぉ",
+  "みゃ":"みゃ","みゅ":"みゅ","みぇ":"みぇ","みょ":"みょ",
+  "りゃ":"りゃ","りゅ":"りゅ","りぇ":"りぇ","りょ":"りょ",
+  "ぁん":"ぁん","ぃん":"ぃん","ぅん":"ぅん","ぇん":"ぇん","ぉん":"ぉん",
+  "ゐ":"ぅい","ゑ":"ぅえ","を":"ぅお",
+  "a":"あ","i":"い","u":"う","e":"え","o":"お","n":"ん",
+  "ba":"ば","bi":"び","bu":"ぶ","be":"べ","bo":"ぼ",
+  "bya":"びゃ","byu":"びゅ","bye":"びぇ","byo":"びょ",
+  "ca":"きゃ","ci":"ち","cu":"きゅ","ce":"きぇ","co":"きょ",
+  "da":"だ","di":"でぃ","dyu":"でゅ","de":"で","do":"ど","du":"どぅ",
+  "fa":"ふぁ","fi":"ふぃ","fu":"ふ","fe":"ふぇ","fo":"ふぉ",
+  "ga":"が","gi":"ぎ","gu":"ぐ","ge":"げ","go":"ご",
+  "gya":"ぎゃ","gyu":"ぎゅ","gye":"ぎぇ","gyo":"ぎょ",
+  "ha":"は","hi":"ひ","hu":"ふ","he":"へ","ho":"ほ",
+  "hya":"ひゃ","hyu":"ひゅ","hye":"ひぇ","hyo":"ひょ",
+  "jya":"じゃ","ji":"じ","jyu":"じゅ","jye":"じぇ","jyo":"じょ",
+  "ka":"か","ki":"き","ku":"く","ke":"け","ko":"こ",
+  "kya":"きゃ","kyu":"きゅ","kye":"きぇ","kyo":"きょ",
+  "la":"ら","li":"り","lu":"る","le":"れ","lo":"ろ",
+  "ma":"ま","mi":"み","mu":"む","me":"め","mo":"も",
+  "na":"な","ni":"に","nu":"ぬ","ne":"ね","no":"の",
+  "pa":"ぱ","pi":"ぴ","pu":"ぷ","pe":"ぺ","po":"ぽ",
+  "pya":"ぴゃ","pyu":"ぴゅ","pye":"ぴぇ","pyo":"ぴょ",
+  "qa":"きゃ","qi":"き","qu":"きゅ","qe":"きぇ","qo":"きょ",
+  "ra":"ら","ri":"り","ru":"る","re":"れ","ro":"ろ",
+  "rya":"りゃ","ryu":"りゅ","rye":"りぇ","ryo":"りょ",
+  "sa":"さ","si":"し","shi":"し","su":"す","se":"せ","so":"そ",
+  "sya":"しゃ","syu":"しゅ","sye":"しぇ","syo":"しょ",
+  "ta":"た","ti":"てぃ","chi":"ち","tzu":"つ","te":"て","to":"と","tu":"とぅ",
+  "cya":"ちゃ","cyu":"ちゅ","cye":"ちぇ","cyo":"ちょ",
+  "tza":"つぁ","tzi":"つぃ","tze":"つぇ","tzo":"つぉ",
+  "wa":"わ","wi":"うぃ","wu":"う","we":"ぅえ","wo":"ぅお",
+  "ya":"や","yu":"ゆ","ye":"いぇ","yo":"よ",
+  "za":"ざ","ji":"じ","zu":"ず","ze":"ぜ","zo":"ぞ",
+  "ia":"ぃあ","ua":"ぅあ","ea":"ぃあ","oa":"ぉあ",
+  "ai":"ぁい","ui":"ぅい","ei":"ぇい","oi":"ぉい",
+  "au":"ぁう","iu":"ぃう","eu":"ぇう","ou":"ぉう",
+  "ae":"ぁえ","ie":"ぃえ","ue":"ぅえ","oe":"ぉえ",
+  "ao":"ぁお","io":"ぃお","uo":"ぅお","eo":"ぇお",
+  "an":"ぁん","in":"ぃん","un":"ぅん","en":"ぇん","on":"ぉん",
+};
+var phmap={
+  "a":"あ","i":"い","M":"う","e":"え","o":"お",
+  "k a":"か","k M":"く","k e":"け","k o":"こ",							"k' a":"きゃ","k' i":"き","k' M":"きゅ","k' e":"きぇ","k' o":"きょ",
+  "g a":"が","g M":"ぐ","g e":"げ","g o":"ご",							"g' a":"ぎゃ","g' i":"ぎ","g' M":"ぎゅ","g' e":"ぎぇ","g' o":"ぎょ",
+  "N a":"が","N M":"ぐ","N e":"げ","N o":"ご",							"N' a":"ぎゃ","N' i":"ぎ","N' M":"ぎゅ","N' e":"ぎぇ","N' o":"ぎょ",
+  "s a":"さ","s i":"し","s M":"す","s e":"せ","s o":"そ",					"S a":"しゃ","S i":"し","S M":"しゅ","S e":"しぇ","S o":"しょ",
+  "dz a":"ざ","dz M":"ず","dz e":"ぜ","dz o":"ぞ",						"dZ a":"じゃ","dZ i":"じ","dZ M":"じゅ","dZ e":"じぇ","dZ o":"じょ",
+  "z M":"ず","z e":"ぜ","z o":"ぞ","Z M":"じゅ","Z e":"じぇ","Z o":"じょ",
+  "t a":"た","t i":"ち","t M":"とぅ","t e":"て","t o":"と",				"t' i":"てぃ","t' M":"とぅ",
+  "ts a":"つぁ","ts i":"つぃ","ts M":"つ","ts e":"つぇ","ts o":"つぉ",	"tS a":"ちゃ","tS i":"ち","tS M":"ちゅ","tS e":"ちぇ","tS o":"ちょ",
+  "d a":"だ","d i":"じ","d M":"どぅ","d e":"で","d o":"ど",				"d' i":"でぃ","d' M":"でゅ",
+  "n a":"な","n M":"ぬ","n e":"ね","n o":"の",							"J a":"にゃ","J i":"に","J M":"にゅ","J e":"にぇ","J o":"にょ",
+  "h a":"は","h M":"ふ","h e":"へ","h o":"ほ",							"C a":"ひゃ","C i":"ひ","C M":"ひゅ","C e":"ひぇ","C o":"ひょ",
+  "p\\ a":"ふぁ","p\\ M":"ふ","p\\ e":"ふぇ", "p\\ o":"ふぉ",				"p\\' i":"ふぃ","p\\' M":"ふ",
+  "b a":"ば","b M":"ぶ","b e":"べ","b o":"ぼ",							"b' a":"びゃ","b' i":"び","b' M":"びゅ","b' e":"びぇ","b' o":"びょ",
+  "p a":"ぱ","p M":"ぷ","p e":"ぺ","p o":"ぽ",							"p' a":"ぴゃ","p' i":"ぴ","p' M":"ぴゅ","p' e":"ぴぇ","p' o":"ぴょ",
+  "h\\ a":"あ","h\\ i":"い","h\\ M":"う","h\\ e":"え","h\\ o":"お",
+  "m a":"ま","m M":"む","m e":"め","m o":"も",							"m' a":"みゃ","m' i":"み","m' M":"みゅ","m' e":"みぇ","m' o":"みょ",
+  "j a":"や","j M":"ゆ","j e":"いぇ","j o":"よ",
+  "4 a":"ら","4 M":"る","4 e":"れ","4 o":"ろ",							"4' a":"りゃ","4' i":"り","4' M":"りゅ","4' o":"りょ",
+  "w a":"わ","w i":"ぅい","w e":"ぅえ","w o":"ぅお",
+  "N":"ん","N'":"ん","N\\":"ん","n":"ん",
+  "k":"く","k'":"き","g":"ぐ","g'":"ぎ","s":"す","S":"し",
+  "dz":"ず","dZ":"じ","z":"ず","Z":"じ","t":"つ","t'":"つ","ts":"つ","tS":"ち",
+  "d":"ど","d'":"で","J":"に","h":"ふ","C":"ひ",
+  "p\\":"ふ","p\\'":"ふ","b":"ぶ","b'":"び","p":"ぷ","p'":"ぴ",
+  "m":"む","m'":"み","j":"ゆ","4":"る","4'":"り","w":"う",
+  "a_0":"ー","i_0":"ー","M_0":"ー","e_0":"ー","o_0":"ー",
+  "-":"ー","sil":"・","asp":"・",
+};
+
+var acurvemap=[
+  [-0.6,-0.3,0,-0.3],
+  [-0.6,-0.3,0,0],
+  [-0.6,-0.3,0,0],
+];
+var pcurvemap=[
+  [0,-0.01,0.015,0,0,0,0,0,0,0,0,0,0,0,0,-0.05],
+  [-0.02,0,0.01,0,-0.03],
+  [-0.02,-0.01,0.015,-0.01,0.03],
+];
+delayaliasmap=[
+  ["あ","ぁい","ぁう","ぁえ","ぁお","ぁん"],["ぁい"],["ぁう"],["ぁえ"],["ぁお"],["ぁん"],
+  ["い","ぃあ","ぃう","ぃえ","ぃお","ぃん"],["ぃあ"],["ぃう"],["ぃえ"],["ぃお"],["ぃん"],
+  ["う","ぅあ","ぅい","ぅえ","ぅお","ぅん"],["ぅあ"],["ぅい"],["ぅえ"],["ぅお"],["ぅん"],
+  ["え","ぇあ","ぇい","ぇう","ぇお","ぇん"],["ぇあ"],["ぇい"],["ぇう"],["ぇお"],["ぇん"],
+  ["お","ぉあ","ぉい","ぉう","ぉえ","ぉん"],["ぉあ"],["ぉい"],["ぉう"],["ぉえ"],["ぉん"],
+  ["か"],["き","きゃ","きゅ","きぇ","きょ"],["く"],["け"],["こ"],["きゃ"],["きゅ"],["きぇ"],["きょ"],
+  ["さ"],["し","しゃ","しゅ","しぇ","しょ"],["す"],["せ"],["そ"],["しゃ"],["しゅ"],["しぇ"],["しょ"],
+  ["た"],["ち","ちゃ","ちゅ","ちぇ","ちょ"],["つ","つぁ","つぃ","つぇ","つぉ"],["て","てぃ"],["と","とぅ"],
+  ["ちゃ"],["ちゅ"],["ちぇ"],["ちょ"],["つぁ"],["つぃ"],["つぇ"],["つぉ"],["てぃ"],["とぅ"],
+  ["な"],["に","にゃ","にゅ","にぇ","にょ"],["ぬ"],["ね"],["の"],["にゃ"],["にゅ"],["にぇ"],["にょ"],
+  ["は"],["ひ","ひゃ","ひゅ","ひぇ","ひょ"],["ふ","ふぁ","ふぃ","ふぇ","ふぉ"],["へ"],["ほ"],
+  ["ひゃ"],["ひゅ"],["ひぇ"],["ひょ"],["ふぁ"],["ふぃ"],["ふぇ"],["ふぉ"],
+  ["ま"],["み","みゃ","みゅ","みぇ","みょ"],["む"],["め"],["も"],["みゃ"],["みゅ"],["みぇ"],["みょ"],
+  ["ら"],["り","りゃ","りゅ","りぇ","りょ"],["る"],["れ"],["ろ"],["りゃ"],["りゅ"],["りぇ"],["りょ"],
+  ["や"],["ゆ"],["いぇ"],["よ"],["わ"],["ん"],
+  ["が"],["ぎ","ぎゃ","ぎゅ","ぎぇ","ぎょ"],["ぐ"],["げ"],["ご"],["ぎゃ"],["ぎゅ"],["ぎぇ"],["ぎょ"],
+  ["ざ"],["じ","じゃ","じゅ","じぇ","じょ"],["ず"],["ぜ"],["ぞ"],["じゃ"],["じゅ"],["じぇ"],["じょ"],
+  ["だ"],["でぃ","でゅ"],["どぅ"],["で"],["ど"],["でゅ"],
+  ["ば"],["び","びゃ","びゅ","びぇ","びょ"],["ぶ"],["べ"],["ぼ"],["びゃ"],["びゅ"],["びぇ"],["びょ"],
+  ["ぱ"],["ぴ","ぴゃ","ぴゅ","ぴぇ","ぴょ"],["ぷ"],["ぺ"],["ぽ"],["ぴゃ"],["ぴゅ"],["ぴぇ"],["ぴょ"],
+];
+voiceconf={
+  "あ":{dl:  0, fd:0, vw:"あ"},	"い":{dl:  0, fd:0, vw:"い"},	"う":{dl:  0, fd:0, vw:"う"},	"え":{dl: 0,fd:0,vw:"え"},	"お":{dl: 0,fd:0,vw:"お"},
+  "か":{dl:  40, fd:1, vw:"あ"},	"き":{dl: 40, fd:1, vw:"い"},	"く":{dl:  0, fd:1, vw:"う"},	"け":{dl:20,fd:1,vw:"え"},	"こ":{dl: 0,fd:1,vw:"お"},
+  "が":{dl:  0, fd:1, vw:"あ"},	"ぎ":{dl: 20, fd:1, vw:"い"},	"ぐ":{dl:  0, fd:1, vw:"う"},	"げ":{dl: 0,fd:1,vw:"え"},	"ご":{dl: 0,fd:1,vw:"お"},
+  "さ":{dl: 70, fd:1, vw:"あ"},	"し":{dl: 90, fd:1, vw:"い"},	"す":{dl: 60, fd:1, vw:"う"},	"せ":{dl:60,fd:1,vw:"え"},	"そ":{dl:60,fd:1,vw:"お"},
+  "ざ":{dl:  0, fd:1, vw:"あ"},	"じ":{dl: 20, fd:1, vw:"い"},	"ず":{dl:  0, fd:1, vw:"う"},	"ぜ":{dl:30,fd:1,vw:"え"},	"ぞ":{dl: 0,fd:1,vw:"お"},
+  "た":{dl:  0, fd:1, vw:"あ"},	"ち":{dl:  0, fd:1, vw:"い"},	"つ":{dl:  0, fd:1, vw:"う"},	"て":{dl: 0,fd:1,vw:"え"},	"と":{dl: 0,fd:1,vw:"お"},
+  "だ":{dl:  0, fd:1, vw:"あ"},	"でぃ":{dl:0, fd:1, vw:"い"},	"どぅ":{dl:0, fd:1, vw:"う"},	"で":{dl: 0,fd:1,vw:"え"},	"ど":{dl: 0,fd:1,vw:"お"},
+  "な":{dl: 40, fd:1, vw:"あ"},	"に":{dl: 20, fd:1, vw:"い"},	"ぬ":{dl: 20, fd:1, vw:"う"},	"ね":{dl:30,fd:1,vw:"え"},	"の":{dl:10,fd:1,vw:"お"},
+  "は":{dl: 30, fd:0, vw:"あ"},	"ひ":{dl: 90, fd:0, vw:"い"},	"ふ":{dl: 40, fd:0, vw:"う"},	"へ":{dl:40,fd:0,vw:"え"},	"ほ":{dl:40,fd:0,vw:"お"},
+  "ば":{dl:  0, fd:1, vw:"あ"},	"び":{dl:  0, fd:1, vw:"い"},	"ぶ":{dl:  0, fd:1, vw:"う"},	"べ":{dl: 0,fd:1,vw:"え"},	"ぼ":{dl: 0,fd:1,vw:"お"},
+  "ぱ":{dl:  0, fd:1, vw:"あ"},	"ぴ":{dl:  0, fd:1, vw:"い"},	"ぷ":{dl:  0, fd:1, vw:"う"},	"ぺ":{dl: 0,fd:1,vw:"え"},	"ぽ":{dl: 0,fd:1,vw:"お"},
+  "ま":{dl: 20, fd:1, vw:"あ"},	"み":{dl: 20, fd:1, vw:"い"},	"む":{dl: 40, fd:1, vw:"う"},	"め":{dl:20,fd:1,vw:"え"},	"も":{dl:20,fd:1,vw:"お"},
+  "や":{dl:  0, fd:0, vw:"あ"},	"ゆ":{dl:  0, fd:0, vw:"い"},	"いぇ":{dl:0, fd:0, vw:"え"},	"よ":{dl: 0,fd:0,vw:"お"},
+  "ら":{dl:  0, fd:0, vw:"あ"},	"り":{dl:  0, fd:0, vw:"い"},	"る":{dl:  0, fd:0, vw:"う"},	"れ":{dl: 0,fd:0,vw:"え"},	"ろ":{dl: 0,fd:0,vw:"お"},
+  "わ":{dl:  0, fd:0, vw:"あ"},	"ん":{dl:  0, fd:0, vw:"ん"},
+  "きゃ":{dl:40,fd:1, vw:"あ"},	"きゅ":{dl:40,fd:1, vw:"う"},	"きぇ":{dl:40,fd:1, vw:"え"},	"きょ":{dl:40,fd:1,vw:"お"},
+  "ぎゃ":{dl:20,fd:1, vw:"あ"},	"ぎゅ":{dl:20,fd:1, vw:"う"},	"ぎぇ":{dl:20,fd:1, vw:"え"},	"ぎょ":{dl:20,fd:1,vw:"お"},
+  "しゃ":{dl:90,fd:1, vw:"あ"},	"しゅ":{dl:90,fd:1, vw:"う"},	"しぇ":{dl:90,fd:1, vw:"え"},	"しょ":{dl:90,fd:1,vw:"お"},
+  "じゃ":{dl:20,fd:1, vw:"あ"},	"じゅ":{dl:20,fd:1, vw:"う"},	"じぇ":{dl:20,fd:1, vw:"え"},	"じょ":{dl:20,fd:1,vw:"お"},
+  "ちゃ":{dl: 0,fd:1, vw:"あ"},	"ちゅ":{dl: 0,fd:1, vw:"う"},	"ちぇ":{dl: 0,fd:1, vw:"え"},	"ちょ":{dl: 0,fd:1,vw:"お"},
+  "つぁ":{dl: 0,fd:1, vw:"あ"},	"つぃ":{dl: 0,fd:1, vw:"い"},	"つぇ":{dl: 0,fd:1, vw:"え"},	"つぉ":{dl: 0,fd:1,vw:"お"},
+  "てぃ":{dl: 0,fd:1, vw:"い"},
+  "とぅ":{dl: 0,fd:1, vw:"お"},
+  "でゅ":{dl: 0,fd:1, vw:"う"},
+  "にゃ":{dl:20,fd:0, vw:"あ"},	"にゅ":{dl:20,fd:0, vw:"う"},	"にぇ":{dl:20,fd:0, vw:"え"},	"にょ":{dl:20,fd:0,vw:"お"},
+  "ひゃ":{dl:90,fd:0, vw:"あ"},	"ひゅ":{dl:90,fd:0, vw:"う"},	"ひぇ":{dl:90,fd:0, vw:"え"},	"ひょ":{dl:90,fd:0,vw:"お"},
+  "ふぁ":{dl:40,fd:0, vw:"あ"},	"ふぃ":{dl:40,fd:0, vw:"い"},	"ふぇ":{dl:40,fd:0, vw:"え"},	"ふぉ":{dl:40,fd:0,vw:"お"},
+  "びゃ":{dl: 0,fd:1, vw:"あ"},	"びゅ":{dl: 0,fd:1, vw:"う"},	"びぇ":{dl: 0,fd:1, vw:"え"},	"びょ":{dl: 0,fd:1,vw:"お"},
+  "ぴゃ":{dl: 0,fd:1, vw:"あ"},	"ぴゅ":{dl: 0,fd:1, vw:"う"},	"ぴぇ":{dl: 0,fd:1, vw:"え"},	"ぴょ":{dl: 0,fd:1,vw:"お"},
+  "みゃ":{dl:20,fd:1, vw:"あ"},	"みゅ":{dl:20,fd:1, vw:"う"},	"みぇ":{dl:20,fd:1, vw:"え"},	"みょ":{dl:20,fd:1,vw:"お"},
+  "りゃ":{dl: 0,fd:0, vw:"あ"},	"りゅ":{dl: 0,fd:0, vw:"う"},	"りぇ":{dl: 0,fd:0, vw:"え"},	"りょ":{dl: 0,fd:0,vw:"お"},
+  "ぃあ":{dl: 0,fd:0, vw:"あ"},	"ぅあ":{dl: 0,fd:0, vw:"あ"},	"ぇあ":{dl: 0,fd:0, vw:"あ"},	"ぉあ":{dl: 0,fd:0,vw:"あ"},
+  "ぁい":{dl: 0,fd:0, vw:"い"},	"ぅい":{dl: 0,fd:0, vw:"い"},	"ぇい":{dl: 0,fd:0, vw:"い"},	"ぉい":{dl: 0,fd:0,vw:"い"},
+  "ぁう":{dl: 0,fd:0, vw:"う"},	"ぃう":{dl: 0,fd:0, vw:"う"},	"ぇう":{dl: 0,fd:0, vw:"う"},	"ぉう":{dl: 0,fd:0,vw:"う"},
+  "ぁえ":{dl: 0,fd:0, vw:"え"},	"ぃえ":{dl: 0,fd:0, vw:"え"},	"ぅえ":{dl: 0,fd:0, vw:"え"},	"ぉえ":{dl: 0,fd:0,vw:"え"},
+  "ぁお":{dl: 0,fd:0, vw:"お"},	"ぃお":{dl: 0,fd:0, vw:"お"},	"ぅお":{dl: 0,fd:0, vw:"お"},	"ぇお":{dl: 0,fd:0,vw:"お"},
+  "ぁん":{dl: 0,fd:0, vw:"ん"},	"ぃん":{dl: 0,fd:0, vw:"ん"},	"ぅん":{dl: 0,fd:0, vw:"ん"},	"ぇん":{dl: 0,fd:0,vw:"ん"},	"ぉん":{dl:0,fd:0,vw:"ん"},
+};
+
+function SetupRenoid(arraybuf,name) {
+//	var cnfname=name.replace(/.sf2$/,".cnf");
+  var req=new XMLHttpRequest();
+//	req.open("GET","Renoid/"+cnfname,true);
+//	req.setRequestHeader("If-Modified-Since", "Wed, 15 Nov 1995 00:00:00 GMT");
+//	req.onload=function() {
+//		if(req.readyState==4&&req.status==200) {
+//			SetupDelay(req.responseText);
+//		}
+//	};
+  renoid=new Renoid(arraybuf,name);
+  renoid.SetSampleRate(audioctx.sampleRate);
+  document.getElementById("rname").innerHTML=name;
+  SetParam();
+//	req.send();
+  setTimeout("proll.Draw()",200);
+}
+function SetupDelay(str) {
+  var p=eval("("+str+")");
+  for(var k in p) {
+    var kk=renoid.shdrs[k];
+    if(kk)
+      kk.dl=parseFloat(p[k])|0;
+  }
+}
+function LoadRenoidLocal(ev) {
+  var reader=new FileReader();
+  reader.onload=function(event) {
+    SetupRenoid(event.target.result,renoidname);
+    document.getElementById("voice").value="";
+  };
+  renoidname=ev.target.files[0].name;
+  reader.readAsArrayBuffer(ev.target.files[0]);
+}
+function LoadRenoid(name) {
+  var e=document.getElementById("voice");
+  for(var i=0;i<e.options.length;++i) {
+    if(e.options[i].value===name) {
+      e.selectedIndex=i;
+      break;
+    }
+  }
+  var req = new XMLHttpRequest();
+  req.name=name;
+  req.open("GET", "Renoid/"+name, true);
+  req.responseType = "arraybuffer";
+  req.onload = function() {
+    if(req.response) {
+      if(req.status==200) {
+        SetupRenoid(req.response,req.name);
+        document.getElementById("file").value="";
+      }
+      if(req.status==404) {
+        LoadRenoid("Nagone-Mako_(64-4).sf2");
+      }
+    }
+  };
+  req.send();
+}
+function Pronun(k,v) {
+  if(k>=17&&k<=101) {
+    var p=keytopronmap[k-17];
+    if(p==null)
+      return null;
+    if(p.length==1)
+      return p[0];
+    var kk=0;
+    if(v<=16) kk=5;
+    else if(v<=32) kk=4;
+    else if(v<=48) kk=3;
+    else if(v<=64) kk=2;
+    else if(v<=80) kk=1;
+    return p[kk];
+  }
+  else
+    return null;
+}
+function SaveXml() {
+  var parser=new DOMParser();
+  var serializer = new XMLSerializer();
+  var s='<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 2.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">'
+    +'<score-partwise version="2.0"><part-list><score-part id="p1"><part-name>MusicXML Part</part-name></score-part></part-list>'
+    +'<part id="p1"></part></score-partwise>';
+  var doc=parser.parseFromString(s,"text/xml");
+  var part=doc.getElementsByTagName("part")[0];
+  var curm=0;
+  var sttbl=["C","D","D","E","E","F","G","G","A","A","B","B"];
+  var altbl=[0,-1,0,-1,0,0,-1,0,-1,0,-1,0];
+  var ti=0;
+  var lyque=new LyricQue();
+  var meas=doc.createElement("measure");
+  meas.setAttribute("number",1);
+  var att1=doc.createElement("attributes");
+  var div=doc.createElement("divisions");
+  div.appendChild(doc.createTextNode("480"));
+  var att2=doc.createElement("attributes");
+  var tm=doc.createElement("time");
+  var beat=doc.createElement("beats");
+  var btype=doc.createElement("beat-type");
+  att1.appendChild(div);
+  beat.appendChild(doc.createTextNode("4"));
+  btype.appendChild(doc.createTextNode("4"));
+  att2.appendChild(beat);
+  att2.appendChild(btype);
+  meas.appendChild(att1);
+  meas.appendChild(att2);
+  part.appendChild(meas);
+  lyque.Add(evlist.lyrics[0]);
+  for(var i=0;i<evlist.list.length;++i) {
+    var e=evlist.list[i];
+    var m=(e[0]/1920)|0;
+    var l=e[0]-ti;
+
+    while(l>0) {
+      var nt=doc.createElement("note");
+      var du=doc.createElement("duration");
+      nt.appendChild(doc.createElement("rest"));
+      nt.appendChild(du);
+      meas.appendChild(nt);
+      if(ti+l<(curm+1)*1920) {
+        du.appendChild(doc.createTextNode(l));
+        ti+=l;
+        l=0;
+      }
+      else {
+        var ll=(curm+1)*1920-ti;
+        du.appendChild(doc.createTextNode(ll));
+        l-=ll;
+        ti=(curm+1)*1920;
+        ++curm;
+        meas=doc.createElement("measure");
+        meas.setAttribute("number",curm+1);
+        lyque.Add(evlist.lyrics[curm]);
+        part.appendChild(meas);
+      }
+    }
+    switch(e[1]) {
+    case "t":
+      var tm=doc.createElement("sound");
+      tm.setAttribute("tempo",e[3]);
+      meas.appendChild(tm);
+      break;
+    case "n":
+      var note=e[3];
+      var ns=note%12;
+      var nt=doc.createElement("note");
+      var pt=doc.createElement("pitch");
+      var du=doc.createElement("duration");
+      var st=doc.createElement("step");
+      var oc=doc.createElement("octave");
+      var ly=doc.createElement("lyric");
+      var sl=doc.createElement("syllabic");
+      var tx=doc.createElement("text");
+      var s=lyque.Get();
+      if(!s)
+        s="あ";
+      tx.appendChild(doc.createTextNode(s));
+      sl.appendChild(doc.createTextNode("single"));
+      ly.appendChild(sl);
+      ly.appendChild(tx);
+      st.appendChild(doc.createTextNode(sttbl[ns]));
+      pt.appendChild(st);
+      oc.appendChild(doc.createTextNode(((note-12)/12)|0));
+      pt.appendChild(oc);
+      if(altbl[ns]) {
+        var al=doc.createElement("alter");
+        al.appendChild(doc.createTextNode("-1"));
+        pt.appendChild(al);
+      }
+      var l=e[4];
+      nt.appendChild(pt);
+      nt.appendChild(du);
+      nt.appendChild(ly);
+      meas.appendChild(nt);
+      var tie=0;
+      while(l>0) {
+        if(ti+l<(curm+1)*1920) {
+          du.appendChild(doc.createTextNode(l));
+          if(tie) {
+            var t=doc.createElement("tie");
+            t.setAttribute("type","stop");
+            nt.appendChild(t);
+            var nn=doc.createElement("notations");
+            t=doc.createElement("tied");
+            t.setAttribute("type","stop");
+            nn.appendChild(t);
+            nt.appendChild(nn);
+          }
+          ti+=l;
+          l=0;
+        }
+        else {
+          var d=(curm+1)*1920-ti;
+          du.appendChild(doc.createTextNode(d));
+          if(tie==0&&ti+l>(curm+1)*1920) {
+            var t=doc.createElement("tie");
+            t.setAttribute("type","start");
+            nt.appendChild(t);
+            var nn=doc.createElement("notations");
+            t=doc.createElement("tied");
+            t.setAttribute("type","start");
+            nn.appendChild(t);
+            nt.appendChild(nn);
+            tie=1;
+          }
+          ti+=d;
+          l-=d;
+          ++curm;
+          meas=doc.createElement("measure");
+          meas.setAttribute("number",curm+1);
+          lyque.Add(evlist.lyrics[curm]);
+          part.appendChild(meas);
+          if(l>0) {
+            nt=doc.createElement("note");
+            pt=doc.createElement("pitch");
+            du=doc.createElement("duration");
+            st=doc.createElement("step");
+            oc=doc.createElement("octave");
+            st.appendChild(doc.createTextNode(sttbl[ns]));
+            pt.appendChild(st);
+            oc.appendChild(doc.createTextNode(((note-12)/12)|0));
+            pt.appendChild(oc);
+            if(altbl[ns]) {
+              var al=doc.createElement("alter");
+              al.appendChild(doc.createTextNode("-1"));
+              pt.appendChild(al);
+            }
+            nt.appendChild(pt);
+            nt.appendChild(du);
+            meas.appendChild(nt);
+          }
+        }
+      }
+      break;
+    }
+  }
+  if(objurl)
+    window.URL.revokeObjectURL(objurl);
+  var xml=serializer.serializeToString(doc);
+  DisableLink();
+  document.getElementById("linkxml").style.display="block";
+  var l=document.getElementById("linkxml");
+  var blob=new Blob([xml],{type:"text/xml"});
+  l.href=objurl=window.URL.createObjectURL(blob);
+  l.target="_blank";
+  l.download="music.xml";
+  l.innerHTML="この曲のMusicXML";
+  l.style.color="#226";
+}
+function LoadXml(str,enc) {
+  renoid.player.Stop();
+  var notetab={"C":0,"D":2,"E":4,"F":5,"G":7,"A":9,"B":11};
+  var e="";
+  var p=str.indexOf("encoding=\"")+10;
+  if(p>=0) {
+    e=str.slice(p,p+5).toLowerCase();
+    if(e!==enc&&e!="iso-8")
+      return 0;
+  }
+  var xml=new DOMParser();
+  var doc=xml.parseFromString(str,"text/xml");
+  evlist.list.length=0;
+  evlist.lyrics.length=0;
+  evlist.markstart=0;
+  evlist.markend=1920*4;
+  proll.ClearLyric();
+  var part=doc.getElementsByTagName("part")[0];
+  var meas=part.getElementsByTagName("measure");
+  if(meas.length>4)
+    evlist.markend=meas.length*1920;
+  var div=parseInt(meas[0].getElementsByTagName("divisions")[0].textContent);
+  var beat=meas[0].getElementsByTagName("beats");
+  if(beat.length>0)
+    beat=parseInt(beat[0].textContent);
+  else
+    beat=4;
+  var beattype=meas[0].getElementsByTagName("beat-type");
+  if(beattype.length>0)
+    beattype=parseInt(beattype[0].textContent);
+  else
+    beattype=4;
+  for(var i=0;i<meas.length;++i) {
+    var ti=i*1920*beat/beattype;
+    evlist.lyrics[i]="";
+    var tempo=meas[i].getElementsByTagName("sound");
+    if(tempo.length>0) {
+      var t=parseInt(tempo[0].getAttribute("tempo"));
+      evlist.list.push([ti,"t",0,t]);
+    }
+    var note=meas[i].getElementsByTagName("note");
+    for(var j=0;j<note.length;++j) {
+      var du=(parseInt(note[j].getElementsByTagName("duration")[0].textContent)*480/div)|0;
+      var re=note[j].getElementsByTagName("rest");
+      if(re.length>0) {
+      }
+      else {
+        var st=notetab[note[j].getElementsByTagName("step")[0].textContent];
+        var al=note[j].getElementsByTagName("alter");
+        if(al.length>0)
+          al=parseInt(note[j].getElementsByTagName("alter")[0].textContent);
+        else
+          al=0;
+        var oc=parseInt(note[j].getElementsByTagName("octave")[0].textContent);
+        var ly=note[j].getElementsByTagName("text")[0];
+        var tied=note[j].getElementsByTagName("tied")[0];
+        if(tied&&tied.getAttribute("type")=="stop") {
+          var d=evlist.list[evlist.list.length-1][4];
+          evlist.list[evlist.list.length-1][4]=d+du;
+        }
+        else if(ly) {
+          ly=ly.textContent;
+          var n=(oc+1)*12+st+al;
+          evlist.list.push([ti,"n",0,n,du]);
+          switch(ly) {
+          case "あん": ly="ぁん"; break;
+          case "いん": ly="ぃん"; break;
+          case "うん": ly="ぅん"; break;
+          case "えん": ly="ぇん"; break;
+          case "おん": ly="ぉん"; break;
+          }
+          if(ly[0]>="A"&&ly[0]<="z")
+            evlist.lyrics[(ti/1920)|0]+=" "+ly;
+          else
+            evlist.lyrics[(ti/1920)|0]+=ly;
+        }
+        else {
+          var n=(oc+1)*12+st+al;
+          evlist.list.push([ti,"n",0,n,du]);
+        }
+      }
+      ti+=du;
+    }
+  }
+  evlist.Sort();
+  proll.SetLyrics();
+  proll.Draw();
+  DisableLink();
+  return 1;
+}
+function LoadCcs(str) {
+  renoid.player.Stop();
+  var xml=new DOMParser();
+  var doc=xml.parseFromString(str,"text/xml");
+  var grps=doc.getElementsByTagName("Group");
+  var s="";
+  var n=0;
+  var grps2=[];
+  for(var i=0;i<grps.length;++i) {
+    if(grps[i].getAttribute("Category")=="SingerSong") {
+      ++n;
+      s += n+":"+grps[i].getAttribute("Name")+"\n";
+      grps2.push(grps[i]);
+    }
+  }
+  if(grps2.length==0)
+    return;
+  if(grps2.length>1) {
+    var rt=prompt("ソングトラックが"+(grps2.length)+"つあります。\n"+s+"読み込むトラック (1-"+grps2.length+") を指定してください","1");
+    var trk=parseInt(rt);
+    if(rt==null||trk<1||trk>grps2.length)
+      return;
+    grp=grps2[trk-1];
+  }
+  else
+    grp=grps2[0];
+  var id=grp.getAttribute("Id");
+  var units=doc.getElementsByTagName("Unit");
+  for(var i=0;i<units.length;++i) {
+    var g=units[i].getAttribute("Group");
+    if(g==id)
+      break;
+  }
+  var song=units[i].getElementsByTagName("Song")[0];
+  evlist.list.length=0;
+  evlist.lyrics.length=0;
+  proll.ClearLyric();
+  var tempo=song.getElementsByTagName("Sound");
+  for(var i=0;i<tempo.length;++i) {
+    var ti=parseInt(tempo[i].getAttribute("Clock")*0.5);
+    var tm=parseInt(tempo[i].getAttribute("Tempo"));
+    evlist.list.push([ti,"t",0,tm]);
+  }
+  var note=song.getElementsByTagName("Note");
+  evlist.markend=1920*4;
+  for(var i=0;i<note.length;++i) {
+    var ti=parseInt(note[i].getAttribute("Clock")*0.5);
+    var ps=parseInt(note[i].getAttribute("PitchStep"));
+    var oc=parseInt(note[i].getAttribute("PitchOctave"));
+    var du=parseInt(note[i].getAttribute("Duration")*0.5);
+    var ly=note[i].getAttribute("Lyric");
+    evlist.list.push([ti,"n",0,(oc+1)*12+ps,du]);
+    var m=(ti/1920)|0;
+    if(!evlist.lyrics[m])
+      evlist.lyrics[m]="";
+    evlist.lyrics[m]+=ly;
+    var end=(m+1)*1920;
+    if(end>evlist.markend)
+      evlist.markend=end;
+  }
+  evlist.markstart=0;
+  evlist.Sort();
+  proll.SetLyrics();
+  proll.Draw();
+  DisableLink();
+}
+function LoadVsqx(str) {
+  renoid.player.Stop();
+  var xml=new DOMParser();
+  var doc=xml.parseFromString(str,"text/xml");
+  var tracks=doc.getElementsByTagName("vsTrack");
+  var trk=tracks[0];
+  if(tracks.length>1) {
+    var s="";
+    for(var i=0;i<tracks.length;++i) {
+      var name=tracks[i].getElementsByTagName("trackName")[0];
+      var ss=name.textContent;
+      s+=(i+1)+":"+ss+"\n";
+    }
+    var rt=prompt("トラックが"+(tracks.length)+"つあります。\n"
+      +s
+      +"\n読み込むトラック (1-"+tracks.length+") を指定してください","1");
+    var tnum=parseInt(rt);
+    if(tnum<1||tnum>tracks.length)
+      return;
+    trk=tracks[tnum-1];
+  }
+  var mtrk=doc.getElementsByTagName("masterTrack")[0];
+  var reso=parseInt(mtrk.getElementsByTagName("resolution")[0].textContent);
+  var part=trk.getElementsByTagName("musicalPart");
+  evlist.list.length=0;
+  evlist.lyrics.length=0;
+  proll.ClearLyric();
+  evlist.markstart=evlist.markend=0;
+  var tempo=mtrk.getElementsByTagName("tempo");
+  for(var i=0;i<tempo.length;++i) {
+    var pos=parseInt(tempo[i].getElementsByTagName("posTick")[0].textContent);
+    var t=(parseInt(tempo[i].getElementsByTagName("bpm")[0].textContent)/100)|0;
+    evlist.list.push([pos,"t",0,t]);
+  }
+  for(var i=0;i<part.length;++i) {
+    var ppos=parseInt(part[i].getElementsByTagName("posTick")[0].textContent);
+    var notes=part[i].getElementsByTagName("note");
+    for(var j=0;j<notes.length;++j) {
+      var pos=parseInt(notes[j].getElementsByTagName("posTick")[0].textContent);
+      var dur=parseInt(notes[j].getElementsByTagName("durTick")[0].textContent);
+      var num=parseInt(notes[j].getElementsByTagName("noteNum")[0].textContent);
+      var ly=notes[j].getElementsByTagName("phnms")[0].textContent;
+      var tick=ppos+pos;
+      var m=(tick/1920)|0;
+      if(!evlist.lyrics[m])
+        evlist.lyrics[m]="";
+      if(phmap[ly])
+        evlist.lyrics[m]+=phmap[ly];
+      else
+        evlist.lyrics[m]+=ly;
+      evlist.list.push([tick*480/reso,"n",0,num,dur*480/reso]);
+      if((tick+dur)>evlist.markend)
+        evlist.markend=(tick+dur);
+    }
+  }
+  evlist.Sort();
+  proll.SetLyrics();
+  proll.Draw();
+  DisableLink();
+}
+function LoadVsq(array) {
+  renoid.player.Stop();
+  var dat=new Uint8Array(array);
+  var idx=0;
+  var timebase=480;
+  function Get4b() {
+    idx+=4;
+    return (dat[idx-4]<<24)+(dat[idx-3]<<16)+(dat[idx-2]<<8)+dat[idx-1];
+  }
+  function Get3b() {
+    idx+=3;
+    return (dat[idx-3]<<16)+(dat[idx-2]<<8)+dat[idx-1];
+  }
+  function Get2b() {
+    idx+=2;
+    return (dat[idx-2]<<8)+dat[idx-1];
+  }
+  function GetD() {
+    var n=0;
+    for(;;) {
+      var d=dat[idx++];
+      if((d&0x80)==0)
+        return n=(n<<7)+d;
+      n=(n<<7)+(d&0x7f);
+    }
+  }
+  function GetTxt(l,d) {
+    var txt="";
+    l-=d;
+    idx+=d;
+    for(var i=0;i<l;++i)
+      txt+=String.fromCharCode(dat[idx++]);
+
+    return txt;
+  }
+  function GetTick(t) {
+    return t*480/timebase;
+  }
+  function LoadTxt(txt,trk) {
+    function GetNum() {
+      var n=0;
+      while(txt[tidx]>="0"&&txt[tidx]<="9")
+        n=n*10+parseInt(txt[tidx++]);
+      return n;
+    }
+    function GetStr(p) {
+      var s="";
+      while(txt[p]>=" ")
+        s+=txt[p++];
+      return s;
+    }
+    function Skip() {
+      while(txt[tidx]<=" ") {
+        ++tidx;
+      }
+    }
+    function NextLine() {
+      while(txt[tidx]>" ")
+        ++tidx;
+      while(txt[tidx]<=" ")
+        ++tidx;
+    }
+    function GetVal(p,k) {
+      var pp=txt.indexOf(k,p)+k.length;
+      return GetStr(pp);
+    }
+    function SjisToStr(x,y) {
+      if(x==0x81&&y==0x5b)
+        return "ー";
+      if(x==0x82)
+        return String.fromCharCode(0x3041+y-0x9f);
+      if(x==0x83)
+        return String.fromCharCode(0x30a1+y-0x40+(y>0x80?-1:0));
+    }
+    var i;
+    var tidx;
+    var ev=[];
+    var len=txt.length;
+    tidx=txt.indexOf("PreMeasure=")+11;
+    var off=GetNum()*1920;
+    for(var k=0;k<trk;++k)
+      tidx=txt.indexOf("[EventList]",tidx)+10;
+    for(;;) {
+      Skip();
+      var ti=GetNum();
+      var s=GetStr(++tidx);
+      NextLine();
+      if(s=="EOS")
+        break;
+      if(ti-off>=0)
+        ev.push([ti-off,s]);
+    }
+    for(i=0;i<ev.length;++i) {
+      tidx=txt.indexOf(ev[i][1],tidx)+8;
+      if(GetVal(tidx,"Type=")=="Anote") {
+        var l=parseInt(GetVal(tidx,"Length="));
+        var n=parseInt(GetVal(tidx,"Note#="));
+        var ly=GetVal(tidx,"LyricHandle=");
+        ev[i].push(n,l,ly);
+      }
+    }
+    var mm=0;
+    for(i=0;i<ev.length;++i) {
+      tidx=txt.indexOf("["+ev[i][4],tidx);
+      if(tidx>=0) {
+        var ti=GetTick(ev[i][0]);
+        var l0=GetVal(tidx,"L0=");
+        var j=1;
+        var s="";
+        while(l0[j]!=",")
+          ++j;
+        j+=2;
+        var p2=l0.indexOf("\"",j);
+        var ss=l0.slice(j,p2);
+        if(phmap[ss])
+          s=phmap[ss];
+        else
+          s=ss;
+        var m=(ti/1920)|0;
+        while(mm<=m)
+          evlist.lyrics[mm++]="";
+        evlist.lyrics[m]+=s;
+        evlist.list.push([ti,"n",0,ev[i][2],ev[i][3]]);
+      }
+    }
+    evlist.markstart=0;
+    evlist.markend=mm*1920;
+    evlist.Sort();
+    proll.SetLyrics();
+    proll.Draw();
+  }
+  if(Get4b()!=0x4d546864)
+    return;
+  if(Get4b()!=0x00000006)
+    return;
+  if(Get2b()!=1)
+    return;
+  var trknum=Get2b();
+  timebase=Get2b();
+  var txtev="";
+  evlist.list.length=0;
+  evlist.lyrics.length=0;
+  var name=[];
+  for(var trk=0;;++trk) {
+    if(Get4b()!=0x4d54726b)
+      break;
+    var trklen=Get4b();
+    var ti=0;
+    var eot=0;
+    var st=0x90;
+    while(eot==0) {
+      ti+=GetD();
+      switch(dat[idx]) {
+      case 0xff:
+        ++idx;
+        switch(dat[idx]) {
+        case 0x01:
+          ++idx;
+          var l=GetD();
+          txtev+=GetTxt(l,8);
+          break;
+        case 0x03:
+          ++idx;
+          var l=GetD();
+          var tx=GetTxt(l,0);
+          name[trk]=tx;
+          break;
+        case 0x51:
+          idx+=2;
+          var t=(60000000/Get3b())|0;
+          evlist.list.push([GetTick(ti),"t",0,t]);
+          break;
+        case 0x2f:
+          ++idx;
+          l=GetD();
+          idx+=l;
+          eot=1;
+          break;
+        default:
+          ++idx;
+          var l=GetD();
+          idx+=l;
+          break;
+        }
+        break;
+      default:
+        if(dat[idx]&0x80)
+          st=dat[idx++];
+        switch(st&0xf0) {
+        case 0x80:
+          idx+=2;
+          break;
+        case 0x90:
+          idx+=2;
+          break;
+        case 0xa0:
+          idx+=2;
+          break;
+        case 0xb0:
+          idx+=2;
+          break;
+        case 0xc0:
+          idx+=1;
+          break;
+        case 0xd0:
+          idx+=1;
+          break;
+        case 0xe0:
+          idx+=2;
+          break;
+        }
+      }
+    }
+  }
+  var targettrk=1;
+  var s="";
+  for(var i=1;i<name.length;++i) {
+    s+=i+":"+name[i]+"\n";
+  }
+  if(name.length>2) {
+    var rt=prompt("メロディトラックが"+(name.length-1)+"つあります。\n"+s+"読み込むトラック (1-"+(name.length-1)+") を指定してください","1");
+    targettrk=parseInt(rt);
+    if(rt==null||targettrk<1||targettrk>=name.length)
+      return;
+  }
+  proll.ClearLyric();
+  LoadTxt(txtev,targettrk);
+  evlist.Sort();
+  proll.Draw();
+  DisableLink();
+}
+function LoadUst(str) {
+  renoid.player.Stop();
+  var idx=0;
+  var ntab=["c","d-","d","e-","e","f","g-","g","a-","a","b-","b"];
+  var mml="#%480;o4l8";
+  var oct=4;
+  function GetNum(p) {
+    var n=0;
+    while(str[p]>="0"&&str[p]<="9")
+      n=n*10+parseInt(str[p++]);
+    return n;
+  }
+  function Find(p) {
+    var s="[#"+("0000"+p).slice(-4)+"]";
+    var idx=str.indexOf(s,idx);
+    if(idx<0)
+      return null;
+    var len=GetNum(str.indexOf("Length=",idx)+7);
+    var note=GetNum(str.indexOf("NoteNum=",idx)+8);
+    var lp=str.indexOf("Lyric=",idx)+6;
+    var ly="";
+    for(var i=0;;++i) {
+      if(str[lp+i]>=" ")
+        ly+=str[lp+i];
+      else
+        break;
+    }
+    return [len,ly,note];
+  }
+  var tempo=GetNum(str.indexOf("Tempo=",0)+6);
+  mml+="t"+tempo;
+  for(var i=0;;++i) {
+    var p=Find(i);
+    if(p==null)
+      break;
+    if(p[1]=="R")
+      mml+="r%"+p[0];
+    else {
+      var ss="";
+      for(var j=0;j<p[1].length;++j) {
+        if(p[1][j]>="ぁ"&&p[1][j]<="ん")
+          ss+=p[1][j];
+      }
+      if(pronmapk[ss]) {
+        mml+=ss;
+        var o=((p[2]/12)|0)-1;
+        while(o>oct) {
+          mml+=">";
+          oct++;
+        }
+        while(o<oct) {
+          mml+="<";
+          oct--;
+        }
+        mml+=ntab[p[2]%12]+"%"+p[0];
+      }
+    }
+  }
+  evlist.markstart=0;
+  document.getElementById("mml").value=mml;
+  evlist.SetMML(mml);
+  proll.Draw();
+  DisableLink();
+}
+function LyricQue(s) {
+  this.que=[];
+  if(s)
+    this.Add(s);
+  this.Add=function(s) {
+    if(!s)
+      return;
+    s=s.replace(/[ァ-ン]/g, function(ch){return String.fromCharCode(ch.charCodeAt(0)-0x60);});
+    for(var i=0;i<s.length;++i) {
+      if(s[i]==="[") {
+        var i2=s.indexOf("]",i+1);
+        if(i2>=0) {
+          this.que.push(s.slice(i+1,i2));
+          i=i2;
+        }
+        else {
+          this.que.push(s.slice(i+1));
+          break;
+        }
+      }
+      else if(s[i]!==" "&&s[i]!=="　") {
+        var s3=s.slice(i,i+3);
+        var s2=s.slice(i,i+2);
+        var ss=s[i];
+        var ps3=pronmap[s3];
+        var ps2=pronmap[s2];
+        if(ps3) {
+          i+=2;
+          ss=ps3;
+        }
+        else if(ps2) {
+          ++i;
+          ss=ps2;
+        }
+        if(s[i+1]=="っ") {
+          ++i;
+          ss+="っ";
+        }
+        this.que.push(ss);
+      }
+    }
+  }
+  this.Get=function() {
+    return this.que.shift();
+  }
+  this.Next=function() {
+    return this.que[0];
+  }
+  this.Clear=function() {
+    this.que.length=0;
+  }
+}
+function Player(renoid,name) {
+  this.idx=0;
+  this.pos=0;
+  this.tempo=120;
+  this.start=0;
+  this.pause=0;
+  this.renoid=renoid;
+  this.timer=-1;
+  this.vol=100;
+  this.curoff=-1;
+  this.curm=-1;
+  this.cnt=0;
+  this.lyric=new LyricQue();
+  renoid.Reset();
+  this.Tick=function(t) {
+    if(this.start===0||this.pause)
+      return;
+    this.pos+=t*this.tempo*8;
+    var m=(this.pos/1920)|0;
+    if(m!=this.curm) {
+      this.curm=m;
+      var s=evlist.lyrics[this.curm];
+      this.lyric.Add(s);
+    }
+    if(this.curoff>=0&&this.pos>=this.curoff) {
+      this.renoid.NoteOff();
+      this.curoff=-1;
+    }
+    if(this.idx<evlist.list.length) {
+      while(evlist.list[this.idx][0]<=this.pos) {
+        var le=e=evlist.list[this.idx];
+        var ne=null;
+        var ni;
+        var ln=e[4];
+        var nf=0;
+        for(ni=this.idx+1;;++ni) {
+          if(ni>=evlist.list.length)
+            break;
+          ne=evlist.list[ni];
+          if(ne[1]=="n") {
+            if(ne[0]>le[0]+le[4])
+              break;
+            if(ne[3]!=le[3]) {
+              if(ne[3]<le[3])
+                nf=1;
+              if(ne[3]>le[3])
+                nf=2;
+              break;
+            }
+            ln+=ne[0]+ne[4]-le[0]-le[4];
+            le=ne;
+          }
+        }
+        switch(0,e[1]) {
+        case "t":
+          this.tempo=e[3];
+          break;
+        case "n":
+          if(e[3]>=0) {
+            var v=this.lyric.Get();
+            var du=1;
+            if(v&&v.length>1&&v[v.length-1]=="っ") {
+              du=0.5;
+              v=v.slice(0,v.length-1);
+            }
+            this.renoid.Select(v);
+            this.renoid.NoteOn(0,e[3],this.vol,ln/this.tempo*125,nf);
+            this.curoff=e[0]+Math.max(10,e[4]*du);
+          }
+          break;
+        }
+        if(++this.idx>=evlist.list.length)
+          break;
+      }
+    }
+    if(this.pos>=evlist.markend){
+      this.Stop();
+      if(exporting==0 && document.getElementById("btnloop").value){
+        this.Locate(evlist.markstart,false);
+        this.Start();
+      }
+    }
+    if(++this.cnt>2) {
+      this.cnt=0;
+      proll.DrawRulerX(ctx);
+    }
+  }
+  this.Locate=function(t,f) {
+    if(f) {
+      this.renoid.Clear();
+      this.lyric.Clear();
+      this.pos=0;
+      this.curm=-1;
+      this.idx=0;
+      for(var i=0,k=evlist.list.length;i<k;++i) {
+        var e=evlist.list[i];
+        if(e[0]>=t) {
+          this.pos=t;
+          this.idx=i;
+          return;
+        }
+        var m=(e[0]/1920)|0;
+        if(m!=this.curm) {
+          this.curm=m;
+          var s=evlist.lyrics[this.curm];
+          this.lyric.Add(s);
+        }
+        if(e[1]=="t")
+          this.tempo=e[3];
+        if(e[1]=="n")
+          this.lyric.Get();
+      }
+      this.pos=t;
+      this.idx=i;
+      return;
+    }
+    this.pos=t;
+    for(var i=0,k=evlist.list.length;i<k;++i) {
+      if(evlist.list[i][0]>=t)
+        break;
+    }
+    this.idx=i;
+    if(t==0)
+      this.curm=-1;
+    else
+      this.curm=((t-1)/16)|0;
+    this.renoid.Clear();
+  }
+  this.Start=function() {
+    this.start=1;
+    this.pause=0;
+  }
+  this.Pause=function(x) {
+    this.pause=x;
+  }
+  this.Stop=function() {
+    this.start=0;
+    this.renoid.NoteOff();
+    this.renoid.Clear();
+  }
+}
+function Renoid(bufarray,name) {
+  var dat=new Uint8Array(bufarray);
+  var phdr=[],pbag=[],pmod=[],pgen=[],inst=[],ibag=[],imod=[],igen=[],shdr=[];
+  var i;
+  var smpl=null;
+  this.shdrs={};
+  this.key=60;
+  this.vel=100;
+  this.note=null;
+  this.curnote=-1;
+  this.curdelta=0;
+  this.ldelta=0;
+  this.phase=0;
+  this.vol=0.8;
+  this.curvol=0.8;
+  this.att=0.5;
+  this.velo=0;
+  this.curvelo=0;
+  this.basekey=57;
+  this.baseoct=3;
+  this.bendco=0.2;
+  this.transpose=1;
+  this.formant=1;
+  this.human=0.2;
+  this.keep=1;
+  this.kcnt=0;
+  this.drratio=1.001;
+  this.sampleRate=44100;
+  this.dlymax=150;
+  this.kdelta=1000/this.sampleRate;
+  this.porta=Math.pow(0.5*0.9,0.05);
+  this.portav=0.5;
+  this.noteinfo=[];
+  this.playinfo=[];
+  this.vibdepth=15;
+  this.vibrate=50;
+  this.vibphase=0;
+  this.vibdelay=0.4;
+  this.vibdlycnt=0;
+  this.lastmora="";
+  this.SetSampleRate=function(n) { this.sampleRate=n; this.kdelta=1000/this.sampleRate;};
+  this.SetTranspose=function(t) { this.transpose=Math.pow(2,t/12); };
+  this.SetFormant=function(f) { this.formant=Math.pow(2,f*0.01);};
+  this.SetHuman=function(h) { this.human=h*0.01;};
+  this.SetKeep=function(f) { this.keep=f;};
+  this.SetVolume=function(v) { this.vol=v; };
+  this.SetAttack=function(a) {this.att=a*0.1+0.01;};
+  this.SetPortamento=function(v) {this.portav=v; this.porta=Math.pow(v*0.9,0.05);};
+  this.SetVibDepth=function(d) {this.vibdepth=d;};
+  this.SetVibRate=function(r) {this.vibrate=r*0.1;};
+  this.SetVibDelay=function(d) {this.vibdelay=d*0.01;};
+  this.DeSelectNote=function() {
+    this.noteinfo.shift();
+  }
+  this.Select=function(s) {
+    if(s=="ー")
+      s=voiceconf[this.lastmora].vw;
+    else
+      this.lastmora=s;
+    var m=pronmap[s];
+    if(m) {
+      this.noteinfo.push(this.shdrs[m]);
+    }
+    else {
+      this.noteinfo.push(this.shdrs["あ"]);
+    }
+  }
+  this.Clear=function() {
+    this.noteinfo.length=0;
+  }
+  this.Reset=function() {
+    this.noteinfo.length=0;
+    this.SetCurDelta(0);
+  }
+  this.TestNote=function(n) {
+    n|=0;
+    if(n!=this.curnote) {
+      this.NoteOff();
+      this.SetCurDelta(0);
+      this.NoteOn(1,48,100,0,0);
+      this.NoteOn(0,n,100,0,0);
+    }
+  }
+  this.NoteOn=function(c,n,v,du,nf) {
+    var j;
+    switch(c) {
+    case 0:
+      this.velo=v/128;
+      if(n>=0) {
+        this.vibdlycnt=-this.vibdelay;
+        var next=this.note;
+        var con=0;
+        if(this.noteinfo.length>0)
+          next=this.noteinfo.shift();
+        if(next&&this.playinfo.length>0) {
+          if(voiceconf[this.note.id].vw==next.id)
+            con=1;
+        }
+        if((this.note=next)==null)
+          this.note=this.shdrs["あ"];
+        var co=(((this.note.co+128)&0xff)-128)*0.01;
+        var blocklen=this.note.fs/(Math.pow(2,(this.basekey-co-69)/12)*440);
+        if(this.note.s==-1)
+          blocklen=0;
+        var tdelta=this.note.fs/this.sampleRate;
+        this.playinfo.push({h:this.note,c:this.note.s,b:this.note.s,v:[],a:0,g:1,bl:blocklen,td:tdelta,fd:this.note.fd,dc:this.dlymax,dl:this.note.dl,p:(Math.pow(2,(n-69)/12+this.baseoct-4)*440)/this.sampleRate,du:du,nf:nf,con:con});
+      }
+      else {
+        for(var i=this.playinfo.length-1;i>=0;--i) {
+          if(this.playinfo[i].dc>=0)
+            this.playinfo[i].dc=-1;
+        }
+      }
+      this.curnote=n;
+      break;
+    case 1:
+      this.Clear();
+      this.Select(Pronun(n,v));
+      break;
+    }
+  }
+  this.NoteOff=function(c) {
+    this.NoteOn(0,-1,0,0,0);
+  }
+  this.dlx1=0;
+  this.dlx2=0;
+  this.dly1=0;
+  this.dly2=0;
+  this.SetCurDelta=function(x) {
+    this.curdelta=this.dlx1=this.dldx2=this.dly1=this.dly2=x;
+  }
+  this.SetCurDelta(0);
+  this.ndu=0;
+  this.ducnt=0;
+  this.aval=1;
+  this.gate=0;
+  this.Proc=function(buf,len) {
+    this.player.Tick(len/this.sampleRate);
+    this.vibdlycnt+=len/this.sampleRate;
+    if((this.vibphase+=this.vibrate*len/this.sampleRate)>=1)
+      this.vibphase-=1;
+    var vib=Math.min(0.2,Math.max(0,this.vibdlycnt))*5;
+    var vibph=Math.sin(this.vibphase*2*Math.PI);
+    var vratio=Math.pow(2,vibph*0.00277*this.vibdepth*Math.min(0.3,vib));
+    var vibv=1+vibph*vib*this.vibdepth*0.001;
+    var q=0.8;
+    if(this.portav==0) {
+      var w=Math.PI*0.8;
+      q=0.6;
+    }
+    else
+      var w=2*Math.PI*Math.pow(15,(1-this.portav))*0.002;
+    var al=Math.sin(w)/(2*q);
+    var cos=Math.cos(w);
+    var ra0=1/(1+al);
+    var dla1=-2*cos*ra0;
+    var dla2=(1-al)*ra0;
+    var dlb02=(1-cos)*0.5*ra0;
+    var dlb1=(1-cos)*ra0;
+    for(var i=0;i<len;++i) {
+      if((this.kcnt+=this.kdelta)>=1) {
+        this.kcnt-=1;
+        ++this.ducnt;
+        var ld=0;
+        var duratio=Math.max(0,Math.min(1,this.ducnt/this.ndu));
+        if(this.acurve) {
+          var adr=(this.acurve.length-1)*duratio;
+          var pdr=(this.pcurve.length-1)*duratio;
+          var iadr=adr|0;
+          var ipdr=pdr|0;
+          var fadr=adr-iadr;
+          var fpdr=pdr-ipdr;
+          if(duratio==1) {
+            this.aval=this.acurve[iadr];
+            ld=this.pcurve[ipdr];
+          }
+          else {
+            this.aval=this.acurve[iadr]+(this.acurve[iadr+1]-this.acurve[iadr])*fadr;
+            ld=this.pcurve[ipdr]+(this.pcurve[ipdr+1]-this.pcurve[ipdr])*fpdr;
+          }
+          ld=this.ldelta*(1+ld*this.human);
+          this.aval=1+this.aval*this.human;
+        }
+        else {
+          this.aval=1;
+          ld=this.ldelta;
+        }
+        if(this.curdelta==0) {
+          if(this.ldelta)
+            this.SetCurDelta(ld*0.8);
+        }
+        else {
+          this.curdelta=dlb02*ld+dlb1*this.dlx1+dlb02*this.dlx2-dla1*this.dly1-dla2*this.dly2;
+          this.dlx2=this.dlx1;
+          this.dlx1=ld;
+          this.dly2=this.dly1;
+          this.dly1=this.curdelta;
+        }
+        var att=0.02;
+        var rel=0.008;
+        var goff=0;
+        var pf=0;
+        var jj;
+        for(jj=this.playinfo.length-1;jj>=0;--jj) {
+          var e=this.playinfo[jj];
+          if(e.dc>0||e.dc<0)
+            --e.dc;
+          if(e.dc<=e.dl) {
+            att=0.02+e.fd*0.03;
+            if(e.g==0) {
+              e.a-=rel;
+              if(e.a<=0) {
+                this.playinfo.splice(jj,1);
+                if(this.playinfo.length==0) {
+                  this.ldelta=0;
+                  this.SetCurDelta(0);
+                }
+              }
+            }
+            else {
+//							if(pf==0&&e.dc<=0) {
+              if(pf==0) {
+                pf=e.p*this.transpose;
+                if(this.ldelta!=pf||this.gate==0) {
+                  this.gate=1;
+                  this.ndu=e.du;
+                  this.ducnt=0;
+                  this.acurve=acurvemap[e.nf];
+                  this.pcurve=pcurvemap[e.nf];
+                  this.ldelta=pf;
+                  if(this.curdelta==0)
+                    this.SetCurDelta(this.ldelta*0.8);
+                }
+              }
+              if(e.con&&jj>0) {
+                var ee=this.playinfo[jj];
+                var pee=this.playinfo[jj-1];
+                pee.g=1;
+                pee.dl=ee.dl;
+                if(ee.dc<0)
+                  pee.dc=ee.dc;
+                else
+                  pee.dc=0;
+                pee.p=ee.p;
+                pee.du=ee.du;
+                pee.nf=ee.nf;
+                this.playinfo.splice(jj,1);
+              }
+              else {
+                if((e.a+=att)>=1)
+                  e.a=1;
+              }
+            }
+            rel=0.01+e.fd*0.05;
+          }
+          if(e.dc<-this.dlymax+goff)
+            e.g=this.gate=0;
+          goff=e.fd*20;
+        }
+      }
+      buf[i]=0;
+      var ddelta=this.curdelta*vratio;
+      var pf=0;
+      if((this.phase+=ddelta)>=1) {
+        this.phase-=1;
+        pf=1;
+      }
+      var fdelta=this.formant;
+      for(var j=0,k=this.playinfo.length;j<k;++j) {
+        var p=this.playinfo[j];
+        var h=p.h;
+        var hd=h.dat;
+        if(p.dc<=p.dl) {
+          var lw=h.le-h.ls;
+          if(pf)
+            p.v.push([0,p.b]);
+          for(var kk=p.v.length-1;kk>=0;--kk) {
+            if(this.keep==0)
+              fdelta=this.formant*p.bl*ddelta;
+            var pp=p.v[kk];
+            if(pp[0]<p.bl*2) {
+              var r=1-(Math.abs(p.bl-pp[0])/p.bl);
+              var q=(pp[1]+pp[0]);
+              while(q>=h.le)
+                q-=lw;
+              buf[i]+=hd[q|0]*p.a*r;
+              pp[0]+=fdelta;
+            }
+            else
+              p.v.splice(kk,1);
+          }
+          var ps=Math.min(1.2,Math.max(0.85,240/p.du));
+          if(ps<1&&this.ducnt<5)
+            ps=((5-this.ducnt)+(this.ducnt*ps))*0.2;
+          p.c+=p.td*ps;
+          var r=p.c-p.b;
+          if(r<0)
+            r+=lw;
+          var bl=h.frq[(p.c/1024)|0];
+          if(r>=bl)
+            p.b=p.c;
+          if(p.c>=h.le)
+            p.c-=lw;
+          if(p.b>=h.le)
+            p.b-=lw;
+        }
+      }
+      buf[i]=buf[i]*this.curvol;
+      if(this.vol*vibv*this.aval>this.curvol)
+        this.curvol+=0.002;
+      else
+        this.curvol-=0.002;
+    }
+  }
+  this.GetOnset=function(str) {
+    var s=str.match(/-[0-9.]*ms/);
+    if(s==null)
+      return -1;
+    return (-parseFloat(s))|0;
+  }
+  this.Analyze=function(shdr,smpl) {
+    function calc(buf,p,len,offs) {
+      var sum=0;
+      for(var i=0;i<len;++i)
+        sum+=buf[p+i]*buf[p+i+offs];
+      return sum;
+    }
+    function Search(buf,p,len) {
+      var max=-99999;
+      var l2=len;
+      for(var j=-24;j<=24;j+=6) {
+        var m2=calc(buf,p,len,len+j);
+        if(m2>max) {
+          l2=len+j;
+          max=m2;
+        }
+      }
+      var l3=l2;
+      for(var j=1;j<=3;++j) {
+        var m2=calc(buf,p,len,l2+j);
+        if(m2<max)
+          break;
+        l3=l2+j;
+        max=m2;
+      }
+      for(var j=1;j<=3;++j) {
+        var m2=calc(buf,p,len,l2-j);
+        if(m2<max)
+          break;
+        l3=l3-j;
+        max=m2;
+      }
+      return len;
+      return l3;
+    }
+    for(var i=0;i<shdr.length;++i) {
+      var offs=shdr[i].s;
+      if(shdr[i].e>offs) {
+        var sz=Math.max(shdr[i].e,shdr[i].le)-offs+1;
+        var buf=shdr[i].dat=new Float32Array(sz);
+        shdr[i].frq=[];
+        for(var j=0;j<sz;++j)
+          buf[j]=smpl[offs+j];
+        shdr[i].s=0;
+        shdr[i].e-=offs;
+        shdr[i].ls-=offs;
+        shdr[i].le-=offs;
+        var co=(((shdr[i].co+128)&0xff)-128)*0.01;
+        var blocklen=(shdr[i].fs/(Math.pow(2,(this.basekey-co-69)/12)*440))|0;
+        for(var k=0;k*1024<sz;++k) {
+//					shdr[i].frq[k]=Search(buf,k*1024,blocklen);
+          shdr[i].frq[k]=blocklen;
+        }
+      }
+    }
+  }
+  function Get2b(idx) {
+    return dat[idx]+(dat[idx+1]<<8);
+  }
+  function Get4b(idx) {
+    return dat[idx]+(dat[idx+1]<<8)+(dat[idx+2]<<16)+(dat[idx+3]<<24);
+  }
+  function Get4s(idx) {
+    return String.fromCharCode(dat[idx],dat[idx+1],dat[idx+2],dat[idx+3]);
+  }
+  function Getstr(idx,n) {
+    var s="";
+    for(var i=0;i<n;++i) {
+      if(dat[idx+i] && dat[idx+i]<0x80)
+        s+=String.fromCharCode(dat[idx+i]);
+    }
+    return s;
+  }
+  if((i=name.search(/\([0-9.]+-[0-9]\)/))>=0) {
+    var s=name.slice(i+1);
+    this.basekey=parseFloat(name.slice(i+1));
+    this.baseoct=parseInt(s.slice(s.indexOf("-")+1));
+  }
+  if(Get4s(0)==="RIFF") {
+    var end0=Get4b(4)+8;
+    if(Get4s(8)==="sfbk") {
+      var idx=12;
+      do {
+        var id1=Get4s(idx);
+        var end1=idx+8+Get4b(idx+4);
+        switch(id1) {
+        case "LIST":
+          var id2=Get4s(idx+8);
+          idx+=12;
+          switch(id2) {
+          case "INFO":
+            do {
+              var id3=Get4s(idx);
+              var sz3=Get4b(idx+4);
+              var end3=(idx+=8)+sz3;
+              switch(id3) {
+              case "INAM":
+                this.INAM=Getstr(idx,sz3);
+                break;
+              case "ICRD":
+                this.ICRD=Getstr(idx,sz3);
+                break;
+              case "ICOP":
+                this.ICOP=Getstr(idx,sz3);
+                break;
+              }
+            } while((idx=end3)<end1);
+            break;
+          case "sdta":
+            do {
+              var id3=Get4s(idx);
+              var sz3=Get4b(idx+4);
+              var end3=(idx+=8)+sz3;
+              var sz;
+              switch(id3) {
+              case "smpl":
+                sz=(sz3/2)|0;
+                smpl=new Float32Array(sz);
+                for(var i=0;i<sz;++i)
+                  smpl[i]=(((Get2b(idx+i*2)+0x8000)&0xffff)-0x8000)/32768;
+                break;
+              }
+            } while((idx=end3)<end1);
+            break;
+          case "pdta":
+            do {
+              var id3=Get4s(idx);
+              var sz3=Get4b(idx+4);
+              var end3=(idx+=8)+sz3;
+              switch(id3) {
+              case "phdr":
+                do phdr.push([Getstr(idx,20),Get2b(idx+20),Get2b(idx+22),Get2b(idx+24),Get4b(idx+26),Get4b(idx+30),Get4b(idx+34)]);
+                while((idx+=38)<end3);
+                break;
+              case "pbag":
+                do pbag.push([Get2b(idx),Get2b(idx+2)]);
+                while((idx+=4)<end3);
+                break;
+              case "pmod":
+                do pmod.push([Get2b(idx),Get2b(idx+2),Get2b(idx+4),Get2b(idx+6),Get2b(idx+8)]);
+                while((idx+=10)<end3);
+                break;
+              case "pgen":
+                do pgen.push([Get2b(idx),Get2b(idx+2)]);
+                while((idx+=4)<end3);
+                break;
+              case "inst":
+                do inst.push([Getstr(idx,20),Get2b(idx+20)]);
+                while((idx+=22)<end3);
+                break;
+              case "ibag":
+                do ibag.push([Get2b(idx),Get2b(idx+2)]);
+                while((idx+=4)<end3);
+                break;
+              case "imod":
+                do imod.push([Get2b(idx),Get2b(idx+2),Get2b(idx+4),Get2b(idx+6),Get2b(idx+8)]);
+                while((idx+=10)<end3);
+                break;
+              case "igen":
+                do igen.push([Get2b(idx),Get2b(idx+2)]);
+                while((idx+=4)<end3);
+                break;
+              case "shdr":
+                do shdr.push({name:Getstr(idx,20),s:Get4b(idx+20),e:Get4b(idx+24),ls:Get4b(idx+28),le:Get4b(idx+32),fs:Get4b(idx+36),ok:dat[idx+40],co:dat[idx+41],sl:Get2b(idx+42),st:Get2b(idx+44)});
+                while((idx+=46)<end3);
+                break;
+              }
+            } while((idx=end3)<end1);
+            break;
+          }
+          break;
+        }
+      } while((idx=end1)<end0);
+    }
+  }
+  this.Analyze(shdr,smpl);
+  for(i=0;i<ibag.length-1;++i) {
+    var j=ibag[i][0],k=ibag[i+1][0];
+    var kr=[0,128],vr=[0,128];
+    for(;j<k;++j) {
+      switch(igen[j][0]) {
+      case 44:
+        vr[0]=igen[j][1]&0xff;
+        vr[1]=igen[j][1]>>8;
+        break;
+      case 43:
+        kr[0]=igen[j][1]&0xff;
+        kr[1]=igen[j][1]>>8;
+        break;
+      case 53:
+        var pr=Pronun(kr[0],vr[0]);
+        if(pr) {
+          shdr[igen[j][1]].id=pr;
+          this.shdrs[pr]=shdr[igen[j][1]];
+          if(this.shdrs[pr]) {
+            this.shdrs[pr].fd=voiceconf[pr].fd;
+            this.shdrs[pr].dl=voiceconf[pr].dl;
+          }
+        }
+        break;
+      }
+    }
+  }
+  for(i=0;i<delayaliasmap.length;++i) {
+    var m=delayaliasmap[i];
+    var sh=this.shdrs[m[0]];
+    if(sh) {
+      var d=this.GetOnset(this.shdrs[m[0]].name);
+      if(d>=0) {
+        for(var j=0;j<m.length;++j) {
+          var sh2=this.shdrs[m[j]];
+          if(sh2)
+            sh2.dl=d;
+        }
+      }
+    }
+  }
+  this.SetAttack(0.2);
+  this.player=new Player(this);
+}
+
+function EventList() {
+  this.list=[];
+  this.lyrics=[];
+  this.cursor=0;
+  this.markstart=0;
+  this.markend=0;
+  this.selnum=0;
+  this.HitTest=function(t,n,y) {
+    var l=this.list;
+    if(y<rheight) {
+      if(t>=this.markend-16/xzoom&&t<this.markend+8/xzoom)
+        return ["me",this.markend];
+      if(t>=this.markstart-8/xzoom&&t<this.markstart+16/xzoom)
+        return ["ms",this.markstart];
+      return null;
+    }
+    for(var i=0,k=l.length;i<k;++i) {
+      var t0=l[i][0];
+      switch(l[i][1]) {
+      case "t":
+        if(t>=t0&&t<t0+32/xzoom&&y<(rheight+nheight+2))
+          return ["t",i];
+        break;
+      case "n":
+        if(l[i][2] && this.selnum==1 && (n|0)==l[i][3]) {
+          var t1=t0+l[i][4];
+          var w=8/xzoom;
+          if(t>=t0-w&&t<=t0+w)
+            return ["ns",i];
+          if(t>=t1-w&&t<=t1+w)
+            return ["ne",i];
+        }
+        break;
+      }
+    }
+    var r=null;
+    for(var i=0,k=l.length;i<k;++i) {
+      var t0=l[i][0];
+      switch(l[i][1]) {
+      case "n":
+        if((n|0)==l[i][3]) {
+          var t1=t0+l[i][4];
+          if(t>=t0&&t<t1) {
+            if(l[i][2] || r==null)
+              r=["n",i];
+          }
+        }
+        break;
+      }
+      if(t0>t)
+        break;
+    }
+    return r;
+  }
+  this.SelClear=function() {
+    for(var i=0,k=evlist.list.length;i<k;++i)
+      evlist.list[i][2]=0;
+    evlist.selnum=0;
+  }
+  this.Sel1=function(i) {
+    this.SelClear();
+    evlist.list[i][2]=1;
+    evlist.selnum=1;
+  }
+  this.Sort=function() {
+    this.list.sort(function(x,y){
+      if(x[0]==y[0]) {
+        if(x[1]=="t")
+          return -1;
+        else
+          return 1;
+      }
+      return x[0]-y[0];
+    });
+  }
+  this.SelCount=function() {
+    evlist.selnum=0;
+    for(var i=0,k=evlist.list.length;i<k;++i) {
+      if(evlist.list[i][2])
+        ++evlist.selnum;
+    }
+  }
+  this.SetMML=function(str) {
+    function GetNum() {
+      var n=0;
+      while(str[idx]>="0"&&str[idx]<="9")
+        n=n*10+parseInt(str[idx++]);
+      return n;
+    }
+    function GetLen() {
+      if(str[idx]=="%") {
+        ++idx;
+        return GetNum()*(480/tb);
+      }
+      var l=GetNum();
+      if(l<=0)
+        return 1920/deflen;
+      return 1920/l;
+    }
+    function Note(list,n) {
+      ++idx;
+      while(str[idx]=="+"||str[idx]=="#") {
+        ++idx;
+        ++n;
+      }
+      while(str[idx]=="-") {
+        ++idx;
+        --n;
+      }
+      var l=GetLen();
+      var l2=l;
+      while(str[idx]==".") {
+        ++idx;
+        l+=(l2=l2/2);
+      }
+      if(n>=0)
+        list.push([ti,"n",0,oct+n,l]);
+      ti+=l;
+    }
+    var idx=0;
+    var ti=0;
+    var oct=4*12;
+    var deflen=8;
+    var pstr="";
+    var tb=4;
+    this.list.length=0;
+    this.lyrics.length=0;
+    while(idx<str.length) {
+      if((str[idx]>="ぁ"&& str[idx]<="ん")||(str[idx]>="ァ"&& str[idx]<="ン")||str[idx]=="ー"||str[idx]==" "||str[idx]=="　") {
+        pstr+=str[idx];
+        ++idx;
+        continue;
+      }
+      else if(str[idx]=="[") {
+        var p2=str.indexOf("]",idx+1);
+        if(p2>=0) {
+          pstr+=str.slice(idx+1,p2);
+          idx=p2+1;
+        }
+        else {
+          idx=str.length;
+        }
+        continue;
+      }
+      else {
+        if(pstr!=="") {
+          var m=(ti/1920)|0;
+          if(this.lyrics[m])
+            this.lyrics[m]+=pstr;
+          else
+            this.lyrics[m]=pstr;
+          pstr="";
+        }
+      }
+      switch(str[idx]) {
+      case "#":
+        ++idx;
+        if(str[idx]=="%") {
+          ++idx;
+          tb=GetNum();
+        }
+        while(str[idx]!=";"&&str[idx!=0x0a])
+          ++idx;
+        ++idx;
+        break;
+      case "c": Note(this.list,12); break;
+      case "d": Note(this.list,14); break;
+      case "e": Note(this.list,16); break;
+      case "f": Note(this.list,17); break;
+      case "g": Note(this.list,19); break;
+      case "a": Note(this.list,21); break;
+      case "b": Note(this.list,23); break;
+      case "r": Note(this.list,-1); break;
+      case "t":
+        ++idx;
+        this.list.push([ti,"t",0,GetNum()]);
+        break;
+      case "l":
+        ++idx;
+        deflen=GetNum();
+        break;
+      case "o":
+        ++idx;
+        oct=GetNum()*12;
+        break;
+      case ">":
+        ++idx;
+        oct+=12;
+        break;
+      case "<":
+        ++idx;
+        oct-=12;
+        break;
+      default:
+        ++idx;
+      }
+      this.markend=ti;
+    }
+    if(proll) {
+      proll.SetLyrics();
+    }
+//		for(var i=0;i<this.list.length;++i)
+//			console.log(this.list[i]);
+
+  }
+  this.MakeMML=function() {
+    var mml="#%480;o4l8";
+    var ti=0;
+    var meas=0;
+    var oct=5*12;
+    var notes=["c","d-","d","e-","e","f","g-","g","a-","a","b-","b"];
+    var list=this.list;
+    function Len(x) {
+      switch(x) {
+      case 60: return "32";
+      case 90: return "32.";
+      case 120: return "16";
+      case 180: return "16.";
+      case 240: return "";
+      case 360: return ".";
+      case 480: return "4";
+      case 720: return "4.";
+      case 840: return "4..";
+      case 960: return "2";
+      case 1440: return "2.";
+      case 1680: return "2..";
+      case 1800: return "2...";
+      case 1920: return "1";
+      }
+      return "%"+x;
+    }
+//		for(var j=0;j<list.length;++j)
+//			console.log(list[j]);
+    for(var i=0;i<list.length;++i) {
+      if(list[i][0]>ti) {
+        var l=list[i][0]-ti;
+        mml+="r"+Len(l);
+        ti=list[i][0];
+      }
+      if(list[i][1]=="n") {
+        var m=ti+list[i][4];
+        while(m>meas*1920) {
+          if(this.lyrics[meas]) {
+            if(this.lyrics[meas].search(/[a-z]/)>=0)
+              mml+="["+this.lyrics[meas]+"]";
+            else
+              mml+=this.lyrics[meas];
+          }
+          ++meas;
+        }
+      }
+      switch(list[i][1]) {
+      case "t":
+        mml+="t"+list[i][3];
+        break;
+      case "n":
+        if(list[i][3]<0)
+          mml+="r";
+        else {
+          var n=list[i][3];
+          while(n<oct) {
+            mml+="<";
+            oct-=12;
+          }
+          while(n>=oct+12) {
+            mml+=">";
+            oct+=12;
+          }
+          mml+=notes[n%12];
+        }
+        var l=list[i][4];
+        if(i+1<list.length) {
+          if(list[i+1][0]<list[i][0]+l) {
+            l=list[i+1][0]-list[i][0];
+            ti=list[i+1][0];
+          }
+          else
+            ti=list[i][0]+list[i][4];
+        }
+        else
+          ti=list[i][0]+list[i][4];
+        mml+=Len(l);
+        break;
+      }
+    }
+    if(this.markend>ti) {
+      var l=this.markend-ti;
+      mml+="r"+Len(l);
+    }
+    return mml;
+  }
+}
+function PianoRoll() {
+  this.yoff=80;
+  this.xoff=0;
+  this.drag=null;
+  this.bkey=[0,1,0,1,0,0,1,0,1,0,1,0];
+  this.cursor=-1;
+  this.measin=0;
+  this.measout=0;
+  this.lyrow=document.getElementById("pianoroll");
+  for(var i=0;i<maxmeas;++i) {
+    var l=document.createElement("input");
+    l.type="text";
+    l.style.textAlign="left";
+    l.style.width="100px";
+    l.style.position="absolute";
+    l.style.top="306px";
+    l.style.left="-1000px";
+    l.addEventListener("input", Input, false);
+    l.index=i;
+    this.lyrow.appendChild(l);
+  }
+  this.PosToTick=function(x) {return (x-pxoff)/xzoom-this.xoff;};
+  this.TickToPos=function(x) {return (x+this.xoff)*xzoom+pxoff;};
+  this.PosToNote=function(y) {return this.yoff-y/nheight;};
+  this.NoteToPos=function(y) {return (this.yoff-y)*nheight;};
+  this.Lyric=function(n) {
+    return this.lyrow.childNodes[3+n];
+  }
+  this.ClearLyric=function() {
+    for(var i=0;i<maxmeas;++i)
+      this.Lyric(i).value="";
+  }
+  this.SetLyrics=function() {
+    for(var i=0;i<maxmeas;++i) {
+      if(evlist.lyrics[i])
+        this.Lyric(i).value=evlist.lyrics[i];
+      else {
+        this.Lyric(i).value="";
+      }
+    }
+  }
+  this.HitTest=function(x,y) {
+    var px=this.PosToTick(x);
+    var py=this.PosToNote(y);
+    if(x>=0&&x<canvasw&&y>=0&&y<canvash) {
+      if(y<rheight) {
+        var r=evlist.HitTest(px,py,y);
+        if(r==null)
+          return ["s",-1,x,y,px|0,py|0];
+        else
+          return [r[0],-1,x,y,px|0,py|0];
+      }
+      if(x<rheight) {
+        return ["s",-1,x,y,px|0,py|0];
+      }
+      if(x<70) {
+        if(x<50) {
+          return ["k",-1,x,y,px|0,py|0];
+        }
+        else {
+          var y0=this.yoff*nheight;
+          var n=(((y0-y)/(nheight*12))|0)*12+[0,2,4,5,7,9,11][(((y0-y)/(12/7*nheight))|0)%7];
+          return ["k",-1,x,y,px|0,n];
+        }
+      }
+      var ht=evlist.HitTest(px,py,y);
+      if(ht==null) {
+        if(y<24+nheight+2)
+          return ["ta",-1,x,y,px|0,py|0];
+        return ["a",-1,x,y,px|0,py|0];
+      }
+      return [ht[0],ht[1],x,y,px|0,py|0];
+    }
+    else
+      return [null,null,x,y,px|0,py|0];
+  }
+  this.DrawBase=function(ctx) {
+    var n,i,x,y,yy,nn,o;
+    ctx.fillStyle="#bbb";
+    ctx.fillRect(70,24,canvasw-70,canvash-24);
+    for(n=0;n<128;++n) {
+      y=this.NoteToPos(n);
+      if(this.bkey[n%12]==0) {
+        ctx.fillStyle="#eee";
+        ctx.fillRect(70,y-(nheight-1),canvasw,(nheight-1));
+      }
+    }
+    for(n=0;;++n) {
+      x=this.TickToPos(n*120);
+      if(x>canvasw)
+        break;
+      if((n%16)==0)
+        ctx.fillStyle="#000";
+      else if((n%4)==0)
+        ctx.fillStyle="#888";
+      else
+        ctx.fillStyle="#ccc";
+      ctx.fillRect(x,24,1,canvash-24);
+    }
+  }
+  this.DrawKeys=function(ctx) {
+    ctx.fillStyle="#000";
+    ctx.fillRect(24,24,46,canvash-24);
+    ctx.fillStyle="#ffe";
+    var keyy=[0,0.137,0.2797,0.4166,0.559,0.690,0.857,1];
+    for(n=0;;++n) {
+      y=this.NoteToPos(n*12);
+      if(y<0)
+        break;
+      for(var i=0;i<keyy.length-1;++i) {
+        var ky0=(keyy[i]*nheight*12)|0;
+        var ky1=(keyy[i+1]*nheight*12)|0;
+        ctx.fillRect(1,y-ky1+1,68,ky1-ky0-1);
+      }
+    }
+    for(n=0;n<128;++n) {
+      o=(n/12)|0;
+      nn=n%12;
+      y=this.NoteToPos(n);
+      if(this.bkey[nn]) {
+        ctx.fillStyle="#222";
+        ctx.fillRect(0,y-(nheight-1),50,nheight-1);
+      }
+    }
+  }
+  this.DrawRulerY=function(ctx) {
+    ctx.fillStyle="#557";
+    ctx.fillRect(0,0,rheight,canvash);
+    ctx.fillStyle="#000";
+    ctx.fillRect(rheight,rheight,1,canvash-rheight);
+    ctx.fillRect(0,canvash-2,canvasw,2);
+    ctx.fillStyle="#eee";
+    for(n=0;n<11;++n) {
+      var y=this.NoteToPos(n*12);
+      if(y<0)
+        break;
+      ctx.fillRect(0,y,rheight,1);
+      ctx.fillText("C"+(n-1),5,y-5);
+    }
+  }
+  this.DrawRulerX=function(ctx) {
+    ctx.fillStyle="#557";
+    ctx.fillRect(0,0,canvasw,rheight);
+    ctx.fillStyle="#000";
+    ctx.fillRect(canvasw-2,0,2,canvash);
+    ctx.fillRect(rheight,rheight,canvasw-rheight,1);
+    ctx.fillStyle="#eee";
+    for(n=0;;++n) {
+      var x=this.TickToPos(n*1920);
+      if(x>canvasw)
+        break;
+      ctx.fillRect(x,0,1,rheight);
+      ctx.fillText((n+1)+"",x+4,10);
+    }
+    x=this.TickToPos(evlist.markend);
+    ctx.fillStyle="#0d0";
+    ctx.beginPath();
+    ctx.moveTo(x,8);
+    ctx.lineTo(x-8,4+rheight*0.5);
+    ctx.lineTo(x,rheight);
+    ctx.fill();
+    x=this.TickToPos(evlist.markstart);
+    ctx.fillStyle="#0d0";
+    ctx.beginPath();
+    ctx.moveTo(x,8);
+    ctx.lineTo(x+8,4+rheight*0.5);
+    ctx.lineTo(x,rheight);
+    ctx.fill();
+    if(renoid) {
+      x=this.TickToPos(renoid.player.pos);
+      ctx.fillRect(x,0,1,rheight);
+    }
+  }
+  this.Draw=function() {
+    var x,y,i,l;
+    this.DrawBase(ctx);
+    var lyidx=0;
+    var lyw=1800*xzoom;
+    for(i=0;i<maxmeas;++i) {
+      var x0=this.TickToPos(i*1920);
+      var x1=x0+lyw;
+      if(x0<canvasw&&x1>0) {
+        var fld=this.lyrow.childNodes[3+i];
+        fld.style.left=x0+"px";
+        fld.style.width=lyw+"px";
+        if(i>this.measout)
+          this.measout=i;
+        if(i<this.measin)
+          this.measin=i;
+      }
+      else if(x0>=canvasw) {
+        if(i<=this.measout) {
+          for(j=i;j<=this.measout;++j) {
+            var fld=this.lyrow.childNodes[3+j];
+            fld.style.left="-1000px";
+          }
+          this.measout=i-1;
+          i=this.measout;
+        }
+      }
+      else if(x1<0) {
+        if(i>=this.measin) {
+          this.measin=i+1;
+          var fld=this.lyrow.childNodes[3+i];
+          fld.style.left="-1000px";
+        }
+      }
+    }
+    for(var i=0,k=evlist.list.length;i<k;++i) {
+      var e=evlist.list[i];
+      x=this.TickToPos(e[0]);
+      if(x>canvasw&&e[2]==0)
+        break;
+      switch(e[1]) {
+      case "n":
+        if(e[3]>=0) {
+          y=this.NoteToPos(e[3]);
+          l=e[4]*xzoom;
+          if(x+l>0) {
+            ctx.fillStyle="#000";
+            ctx.fillRect(x,y-(nheight-2),l,nheight-3);
+            if(e[2])
+              ctx.fillStyle="#4e5";
+            else
+              ctx.fillStyle="#e45";
+            ctx.fillRect(x+1,y-(nheight-3),l-2,nheight-5);
+          }
+        }
+        break;
+      }
+    }
+    ctx.fillStyle="rgba(0,0,0,0.4)";
+    ctx.fillRect(0,rheight,canvasw,nheight+2);
+    for(var i=0,k=evlist.list.length;i<k;++i) {
+      var e=evlist.list[i];
+      x=this.TickToPos(e[0]);
+      if(e[1]=="t") {
+        ctx.fillStyle="#000";
+        ctx.fillRect(x,rheight,32,nheight+2);
+        if(e[2])
+          ctx.fillStyle="#2d2";
+        else
+          ctx.fillStyle="#dc2";
+        ctx.fillRect(x+1,rheight+1,30,nheight);
+        ctx.fillStyle="#000";
+        ctx.fillText("T"+e[3],x+4,rheight+nheight-3);
+      }
+    }
+    if(this.drag) {
+      switch(this.drag[0][0]) {
+      case "ns":
+      case "ne":
+        ctx.fillStyle="#e45";
+        var e=evlist.list[this.drag[2]];
+        var x1=this.TickToPos(e[0]);
+        var x2=this.TickToPos(e[0]+e[4]);
+        ctx.fillRect(x1,0,1,canvash);
+        ctx.fillRect(x2,0,1,canvash);
+        break;
+      case "n":
+        ctx.fillStyle="#e45";
+        var e=evlist.list[this.drag[2][0]];
+        var x1=this.TickToPos(e[0]);
+        var x2=this.TickToPos(e[0]+e[4]);
+        ctx.fillRect(x1,0,1,canvash);
+        ctx.fillRect(x2,0,1,canvash);
+        break;
+      case "a":
+        if(editmode=="a") {
+          ctx.fillStyle="#e45";
+          var x1=this.TickToPos(this.Grid(this.drag[0][4]));
+          var x2=this.TickToPos(this.Grid(this.drag[1][4]));
+          y=this.NoteToPos(this.drag[0][5]);
+          ctx.fillRect(x1,y-(nheight-2),x2-x1,(nheight-3));
+          ctx.fillRect(x1,0,1,canvash);
+          ctx.fillRect(x2,0,1,canvash);
+        }
+        else {
+          ctx.fillStyle="rgba(0,255,0,0.4)";
+          ctx.fillRect(this.drag[0][2],this.drag[0][3],this.drag[1][2]-this.drag[0][2],this.drag[1][3]-this.drag[0][3]);
+        }
+        break;
+      case "ta":
+        if(editmode=="s") {
+          ctx.fillStyle="rgba(0,255,0,0.4)";
+          ctx.fillRect(this.drag[0][2],rheight,this.drag[1][2]-this.drag[0][2],nheight+2);
+        }
+        break;
+      }
+    }
+    this.DrawKeys(ctx);
+    this.DrawRulerY(ctx);
+    this.DrawRulerX(ctx);
+  }
+  this.Grid=function(x) {
+    return ((x/xgrid)|0)*xgrid;
+  }
+  this.Down=function(pos,ht) {
+    switch(ht[0]) {
+    case "s":
+      this.drag=[ht,ht,this.xoff,this.yoff];
+      break;
+    case "k":
+      renoid.player.Pause(1);
+      this.drag=[ht,ht];
+      renoid.TestNote(ht[5]);
+      break;
+    case "n":
+      renoid.player.Pause(1);
+      var e=evlist.list[ht[1]];
+      if(e[2]==0)
+        evlist.Sel1(ht[1]);
+      this.drag=[ht,ht,[ht[1]],[e[0]],[e[3]]];
+      for(var j=0;j<evlist.list.length;++j) {
+        if(j!==ht[1]) {
+          if(evlist.list[j][2]) {
+            this.drag[2].push(j);
+            this.drag[3].push(evlist.list[j][0]);
+            this.drag[4].push(evlist.list[j][3]);
+          }
+        }
+      }
+      proll.Draw();
+      renoid.TestNote(e[3]);
+      break;
+    case "ns":
+    case "ne":
+      renoid.player.Pause(1);
+      var e=evlist.list[ht[1]];
+      if(e[2]==0)
+        evlist.Sel1(ht[1]);
+      this.drag=[ht,ht,ht[1],e[0],e[3]];
+      proll.Draw();
+      renoid.TestNote(e[3]);
+      break;
+    case "t":
+      var e=evlist.list[ht[1]];
+      this.drag=[ht,ht,ht[1],e[0],e[3]];
+      proll.Draw();
+      break;
+    case "ta":
+      this.drag=[ht,ht];
+      break;
+    case "a":
+      if(editmode=="a") {
+        renoid.player.Pause(1);
+        renoid.TestNote(ht[5]);
+      }
+      this.drag=[ht,ht];
+      break;
+    case "me":
+    case "ms":
+      this.drag=[ht,ht];
+    }
+  }
+  this.Move=function(pos,ht) {
+    switch(ht[0]) {
+    case "k":
+      canvas.style.cursor="url(./images/cursornormal.png),default";
+      break;
+    case "s":
+      canvas.style.cursor="url(./images/cursormove.png),move";
+      break;
+    case "n":
+      canvas.style.cursor="url(./images/cursormove.png),move";
+      break;
+    case "ns":
+      canvas.style.cursor="url(./images/cursorew.png),e-resize";
+      break;
+    case "ne":
+    case "me":
+    case "ms":
+      canvas.style.cursor="url(./images/cursorew.png),w-resize";
+      break;
+    case "a":
+      if(editmode=="s")
+        canvas.style.cursor="url(./images/cursorsel.png),default";
+      else
+        canvas.style.cursor="url(./images/cursoradd.png),default";
+      break;
+    case "t":
+      canvas.style.cursor="url(./images/cursormove.png),move";
+      break;
+    case "ta":
+      if(editmode=="s")
+        canvas.style.cursor="url(./images/cursorsel.png),default";
+      else
+        canvas.style.cursor="url(./images/cursorplus.png),default";
+      break;
+    }
+  }
+  this.Drag=function(pos,ht) {
+    var i;
+    if(this.drag) {
+      switch(this.drag[0][0]) {
+      case "s":
+        this.xoff=this.drag[2]+(pos.x-this.drag[0][2])/xzoom;
+        this.yoff=this.drag[3]+(pos.y-this.drag[0][3])/nheight;
+        break;
+      case "k":
+        renoid.TestNote(ht[5]);
+        break;
+      case "n":
+        for(var j=0;j<this.drag[2].length;++j) {
+          i=this.drag[2][j];
+          var l=evlist.list[i];
+          l[0]=this.Grid(this.drag[3][j]+ht[4]-this.drag[0][4]);
+          l[3]=this.drag[4][j]+ht[5]-this.drag[0][5];
+          if(j==0)
+            renoid.TestNote(l[3]);
+        }
+        break;
+      case "ns":
+        i=this.drag[0][1];
+        var l=evlist.list[i];
+        var d=l[0]+l[4];
+        if(ht[4]!=d) {
+          l[0]=this.Grid(this.drag[3]+ht[4]-this.drag[0][4]);
+          l[4]=d-l[0];
+        }
+        l[3]=this.drag[4]+ht[5]-this.drag[0][5];
+        renoid.TestNote(l[3]);
+        break;
+      case "ne":
+        i=this.drag[0][1];
+        var l=evlist.list[i];
+        l[3]=this.drag[4]+ht[5]-this.drag[0][5];
+        l[4]=this.Grid(ht[4])-l[0];
+        if(l[4]==0)
+          l[4]=120;
+        renoid.TestNote(l[3]);
+        break;
+      case "t":
+        i=this.drag[0][1];
+        evlist.list[i][0]=this.Grid(this.drag[3]+ht[4]-this.drag[1][4]);
+        if(evlist.list[i][2])
+          evlist.list[i][3]=this.drag[4]+Math.round((this.drag[0][3]-pos.y)/2);
+        break;
+      case "ta":
+      case "a":
+        this.drag[1]=ht;
+        break;
+      case "me":
+        evlist.markend=this.Grid(ht[4]);
+        break;
+      case "ms":
+        renoid.player.pos=evlist.markstart=this.Grid(ht[4]);
+        break;
+      }
+    }
+    this.Draw();
+  }
+  this.Up=function(pos,ht) {
+    if(this.drag) {
+      switch(this.drag[0][0]) {
+      case "k":
+        renoid.NoteOff();
+        renoid.player.Pause(0);
+        break;
+      case "n":
+        renoid.NoteOff();
+        renoid.player.Pause(0);
+        break;
+      case "ns":
+      case "ne":
+        var l=evlist.list[this.drag[0][1]];
+        if(l[4]<0) {
+          l[0]+=l[4];
+          l[4]=-l[4];
+        }
+        renoid.NoteOff();
+        renoid.player.Pause(0);
+        break;
+      case "a":
+        evlist.SelClear();
+        if(editmode=="a") {
+          var x0=this.Grid(this.drag[0][4]);
+          var x1=this.Grid(this.drag[1][4]);
+          if(x0<x1)
+            evlist.list.push([x0,"n",1,this.drag[0][5],x1-x0]);
+          if(x0>x1)
+            evlist.list.push([x1,"n",1,this.drag[0][5],x0-x1]);
+          renoid.NoteOff();
+          renoid.player.Pause(0);
+          evlist.selnum=1;
+        }
+        else {
+          var x0=this.drag[0][4];
+          var x1=this.drag[1][4];
+          var y0=this.drag[0][5];
+          var y1=this.drag[1][5];
+          if(x0>x1)
+            var t=x0,x0=x1,x1=t;
+          if(y0>y1)
+            var t=y0,y0=y1,y1=t;
+          for(var i=0,k=evlist.list.length;i<k;++i) {
+            var t=evlist.list[i];
+            if(t[1]=="n"&&t[0]>=x0&&t[0]<x1&&t[3]>=y0&&t[3]<=y1) {
+              t[2]=1;
+              evlist.selnum++;
+            }
+          }
+        }
+        break;
+      case "t":
+        evlist.Sel1(this.drag[0][1]);
+        break;
+      case "ta":
+        evlist.SelClear();
+        if(editmode=="a")
+          evlist.list.push([this.Grid(this.drag[0][4]),"t",1,120]);
+        else {
+          var x0=this.drag[0][4];
+          var x1=this.drag[1][4];
+          if(x0>x1)
+            var t=x0,x0=x1,x1=t;
+          for(var i=0,k=evlist.list.length;i<k;++i) {
+            var t=evlist.list[i];
+            if(t[1]=="t"&&t[0]>=x0&&t[0]<x1) {
+              t[2]=1;
+              evlist.selnum++;
+            }
+          }
+        }
+        break;
+      }
+    }
+    this.drag=null;
+    evlist.Sort();
+    this.Draw();
+  }
+}
+function CmdNew() {
+  renoid.player.Stop();
+  if(window.confirm("Clear Song Data?")) {
+    evlist.list.length=0;
+    evlist.lyrics.length=0;
+    evlist.list.push([0,"t",0,120]);
+    evlist.markstart=0;
+    evlist.markend=1920*4;
+    renoid.player.pos=0;
+    proll.yoff=78;
+    proll.xoff=0;
+    proll.ClearLyric();
+    proll.Draw();
+    DisableLink();
+  }
+}
+function CmdDel() {
+  for(var i=evlist.list.length-1;i>=0;--i) {
+    if(evlist.list[i][2])
+      evlist.list.splice(i,1);
+  }
+  evlist.SelClear();
+  proll.Draw();
+}
+function CmdEdit(s) {
+  switch(s) {
+  case "s":
+    document.getElementById("edits").checked=true;
+    break;
+  case "a":
+    document.getElementById("edita").checked=true;
+    break;
+  }
+  editmode=s;
+}
+function CmdZoom() {
+  var x=parseFloat(document.getElementById("slizoomx").value);
+  var y=parseFloat(document.getElementById("slizoomy").value);
+  if(x>=0 && y>=0) {
+    xzoom=Math.pow(320,x*0.01)/128;
+    nheight=8+Math.pow(60,y*0.01);
+    rheight=28;
+    if(proll)
+      proll.Draw();
+  }
+}
+function CmdGrid(x) {
+  xgrid=1920/x;
+}
+function CmdCopy() {
+  clipboard.length=0;
+  for(var i=0,k=evlist.list.length;i<k;++i) {
+    if(evlist.list[i][2]) {
+      e=evlist.list[i];
+      if(e[1]=="n")
+        clipboard.push([e[0]+120,e[1],1,e[3],e[4]]);
+    }
+  }
+}
+function CmdPaste() {
+  evlist.SelClear();
+  for(var i=0;i<clipboard.length;++i)
+    evlist.list.push(clipboard[i]);
+  evlist.Sort();
+  evlist.SelCount();
+  proll.Draw();
+}
+function CmdExport() {
+//  console.log("CmdExport");
+  function Setb4(n,v) {
+    dat[0][n]=v&0xff; dat[0][n+1]=(v>>8)&0xff; dat[0][n+2]=(v>>16)&0xff; dat[0][n+3]=(v>>24)&0xff;
+  }
+  var dat=[];
+  dat[0]=new Uint8Array(
+    [0x52,0x49,0x46,0x46,0,0,0,0,0x57,0x41,0x56,0x45,
+    0x66,0x6d,0x74,0x20,0x10,0x00,0x00,0x00,0x01,0x00,0x01,0x00,0x44,0xac,0x00,0x00,
+    0x10,0xb1,0x02,0x00,0x02,0x00,0x10,0x00,
+    0x64,0x61,0x74,0x61,0,0,0,0]);
+  var bcnt=1;
+  var buf=new Float32Array(1024);
+  DisableLink();
+  exporting=1;
+  renoid.SetSampleRate(44100);
+//  renoid.SetSampleRate(48000);
+  renoid.Reset();
+  renoid.player.Locate(evlist.markstart,1);
+  renoid.player.Start();
+  while(renoid.player.pos<evlist.markend) {
+//    console.log(renoid.player.pos, evlist.markend);
+    dat[bcnt]=new Uint16Array(1024);
+    renoid.Proc(buf,1024);
+    for(var i=0;i<1024;++i) {
+      var c=buf[i];
+      if(c>1) c=1;
+      if(c<-1) c=-1;
+      dat[bcnt][i]=(c*32767)|0;
+    }
+    ++bcnt;
+  }
+  Setb4(4,(bcnt-1)*2048+36);
+  Setb4(24,renoid.sampleRate|0);
+  Setb4(28,(renoid.sampleRate*2)|0);
+  Setb4(40,(bcnt-1)*2048);
+  if(objurl)
+    window.URL.revokeObjectURL(objurl);
+  var blob=new Blob(dat,{type:"audio/wav"});
+  document.getElementById("linkwav").style.display="block";
+  var e=document.getElementById("linkwav");
+  e.download="track.wav";
+  e.href=objurl=window.URL.createObjectURL(blob);
+  e.innerHTML="WAVファイルへのリンク";
+  e.target="_blank";
+  e.style.color="#226";
+  exporting=0;
+  renoid.SetSampleRate(audioctx.sampleRate);
+  renoid.Reset();
+}
+function Input(ev) {
+  evlist.lyrics[ev.target.index]=ev.target.value;
+}
+function Wheel(event) {
+}
+function KeyDown(e) {
+  switch(e.keyCode) {
+  case 46:
+    CmdDel();
+    return true;
+  case 0x53:
+    CmdEdit("s");
+    return true;
+  case 0x45:
+    CmdEdit("a");
+    return true;
+  }
+  if(e.ctrlKey) {
+    switch(e.keyCode) {
+    case 0x43:
+      CmdCopy();
+      return false;
+    case 0x56:
+      CmdPaste();
+      return false;
+    case 0x58:
+      CmdExport();
+      return false;
+    }
+  }
+}
+function PtrDown(ev) {
+  if(dummystart==0) {
+    dummysrc.start(0);
+    dummystart=1;
+  }
+  mousepress=1;
+  if(PtrEv(ev,1)!=null) {
+    return false;
+  }
+}
+function PtrUp(ev) {
+  mousepress=0;
+  PtrEv(ev,2);
+}
+function PtrMove(ev) {
+  var p=0;
+  if(mousepress)
+    p=4;
+  if(PtrEv(ev,p)!=null) {
+  }
+}
+function GetPos(ev) {
+  if(ev.touches) {
+    var rc=canvas.getBoundingClientRect();
+    return {x:ev.touches[0].clientX-rc.left, y:ev.touches[0].clientY-rc.top};
+  }
+  else {
+    var rc=canvas.getBoundingClientRect();
+     return {x:ev.clientX-rc.left, y:ev.clientY-rc.top};
+  }
+}
+var lastPos;
+var lastHt;
+function PtrEv(ev,p) {
+  if(ev) {
+    switch(p) {
+    case 0:
+      lastPos=GetPos(ev);
+      lastHt=proll.HitTest(lastPos.x,lastPos.y);
+      proll.Move(lastPos,lastHt);
+      return lastHt;
+    case 1:
+      canvas.focus();
+      lastPos=GetPos(ev);
+      lastHt=proll.HitTest(lastPos.x,lastPos.y);
+      proll.Down(lastPos,lastHt);
+      return lastHt;
+    case 2:
+      proll.Up(lastPos,lastHt);
+      return lastHt;
+    case 4:
+      lastPos=GetPos(ev);
+      lastHt=proll.HitTest(lastPos.x,lastPos.y);
+      proll.Drag(lastPos,lastHt);
+      return lastHt;
+    }
+  }
+}
+function DisableLink() {
+  document.getElementById("linkurl").style.display="none";
+  document.getElementById("linkxml").style.display="none";
+  document.getElementById("linkwav").style.display="none";
+}
+function Dump() {
+}
+
+function MMLPlay() {
+  if(dummystart==0&&dummysrc) {
+    audioctx.resume();
+    dummysrc.start(0);
+    dummystart=1;
+  }
+  if(renoid) {
+    renoid.Reset();
+    renoid.player.Locate(evlist.markstart,1);
+    renoid.player.Start();
+  }
+}
+function MMLStop() {
+  renoid.player.Stop();
+}
+function GetPatchString() {
+  var r=encodeURIComponent(document.getElementById("rname").innerHTML.slice(0,-4));
+  var v=document.getElementById("paramvol").value;
+  var t=document.getElementById("paramtranspose").value;
+  var f=document.getElementById("paramformant").value;
+  var h=document.getElementById("paramhuman").value;
+  var k=document.getElementById("paramkeep").value;
+  var p=document.getElementById("paramporta").value;
+  var b=document.getElementById("paramvibdepth").value;
+  var br=document.getElementById("paramvibrate").value;
+  var bd=document.getElementById("paramvibdelay").value;
+  var s=evlist.MakeMML();//document.getElementById("mml").value;
+  return "r="+r+"&v="+v+"&t="+t+"&f="+f+"&k="+k+"&p="+p+"&b="+b+"&m="+encodeURIComponent(s);
+}
+function SetPatchString(s) {
+  var params=s.split("&");
+  var rflag=0;
+  for(var i=0; i<params.length; ++i) {
+    var e = params[i].split('=');
+    var s;
+    switch(e[0]) {
+    case "m": s=document.getElementById("mml").value=decodeURIComponent(e[1]);
+      evlist.SetMML(s.toLowerCase());
+      break;
+    case "r": LoadRenoid(decodeURIComponent(e[1]+".sf2")); rflag=1; break;
+    case "v": document.getElementById("paramvol").setValue(parseFloat(e[1])); break;
+    case "t": document.getElementById("paramtranspose").setValue(parseFloat(e[1])); break;
+    case "f": document.getElementById("paramformant").setValue(parseFloat(e[1])); break;
+    case "h": document.getElementById("paramhuman").setValue(parseFloat(e[1])); break;
+    case "k": document.getElementById("paramkeep").setValue(parseFloat(e[1])); break;
+    case "p": document.getElementById("paramporta").setValue(parseFloat(e[1])); break;
+    case "b": document.getElementById("paramvibdepth").setValue(parseFloat(e[1])); break;
+    }
+    SetParam();
+  }
+  return rflag;
+}
+function MakeURL() {
+  if(mode==0)
+    document.getElementById("mml").value=evlist.MakeMML();
+  DisableLink();
+  document.getElementById("linkurl").style.display="block";
+  var l=document.getElementById("linkurl");
+  l.href="http://"+location.host+location.pathname+"?"+GetPatchString();
+  l.target="_self";
+  l.innerHTML="この曲のURL";
+  l.style.color="#226";
+}
+function Update() {
+  evlist.SetMML(document.getElementById("mml").value.toLowerCase());
+  DisableLink();
+}
+function SetParam() {
+  paramtranspose=parseInt(document.getElementById("paramtranspose").value);
+  paramformant=parseInt(document.getElementById("paramformant").value);
+  paramhuman=parseInt(document.getElementById("paramhuman").value);
+  paramkeep=document.getElementById("paramkeep").value;
+  paramvol=parseInt(document.getElementById("paramvol").value);
+  paramporta=parseInt(document.getElementById("paramporta").value);
+  paramvibdepth=parseInt(document.getElementById("paramvibdepth").value);
+  paramvibrate=parseInt(document.getElementById("paramvibrate").value);
+  paramvibdelay=parseInt(document.getElementById("paramvibdelay").value);
+  if(renoid) {
+    renoid.SetTranspose(paramtranspose);
+    renoid.SetFormant(paramformant);
+    renoid.SetHuman(paramhuman);
+    renoid.SetKeep(paramkeep);
+    renoid.SetVolume(paramvol*0.01);
+    renoid.SetPortamento(paramporta*0.01);
+    renoid.SetVibDepth(paramvibdepth);
+    renoid.SetVibRate(paramvibrate);
+    renoid.SetVibDelay(paramvibdelay);
+  }
+}
+function SelVoice(fname) {
+  LoadRenoid(fname);
+}
+function DragEnter(event) {
+  event.stopPropagation();
+  event.preventDefault();
+  return false;
+}
+function DragOver(event) {
+  event.stopPropagation();
+  event.preventDefault();
+  return false;
+}
+function Drop(event) {
+  file=event.dataTransfer.files[0];
+  var reader=new FileReader();
+  reader.onload=function(event) {
+    switch(filemode) {
+    case 0:
+      renoid=new Renoid(event.target.result);
+      renoid.SetSampleRate(audioctx.sampleRate);
+      break;
+    case 1:
+      LoadUst(event.target.result);
+      break;
+    case 2:
+      LoadVsq(event.target.result);
+      break;
+    case 3:
+      LoadCcs(event.target.result);
+      break;
+    case 4:
+      if(LoadXml(event.target.result,"shift")==0) {
+        filemode=5;
+        reader.readAsText(file,"utf-8");
+      }
+      break;
+    case 5:
+      LoadXml(event.target.result,"utf-8");
+      break;
+    case 6:
+      LoadVsqx(event.target.result);
+      break;
+    }
+  };
+  var ext=file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+  switch(ext) {
+  case ".sf2":
+    filemode=0;
+    if(confirm(file.name+"をボイスファイルとして読み込みます"))
+      reader.readAsArrayBuffer(file);
+    break;
+  case ".ust":
+    filemode=1;
+    if(confirm(file.name+"をシーケンスファイルとして読み込みます"))
+      reader.readAsText(file,"Shift-JIS");
+    break;
+  case ".vsq":
+    filemode=2;
+    if(confirm(file.name+"をシーケンスファイルとして読み込みます"))
+      reader.readAsArrayBuffer(file);
+    break;
+  case ".ccs":
+    filemode=3;
+    if(confirm(file.name+"をシーケンスファイルとして読み込みます"))
+      reader.readAsText(file,"utf-8");
+    break;
+  case ".xml":
+    filemode=4;
+    if(confirm(file.name+"をシーケンスファイルとして読み込みます"))
+      reader.readAsText(file,"Shift-JIS");
+    break;
+  case ".vsqx":
+    filemode=6;
+    if(confirm(file.name+"をシーケンスファイルとして読み込みます"))
+      reader.readAsText(file,"utf-8");
+    break;
+  }
+  event.stopPropagation();
+  event.preventDefault();
+  return false;
+}
+function DragOver(event) {
+  event.preventDefault();
+  return false;
+}
+function SelMode() {
+  if(document.getElementById("modeproll").value) {
+    document.getElementById("prollmode").style.display="block";
+    document.getElementById("mmlmode").style.display="none";
+    evlist.SetMML(document.getElementById("mml").value.toLowerCase());
+    proll.Draw();
+    mode=0;
+  }
+  else {
+    document.getElementById("prollmode").style.display="none";
+    document.getElementById("mmlmode").style.display="block";
+    document.getElementById("mml").value=evlist.MakeMML();
+    mode=1;
+  }
+}
+function AudioProc(ev) {
+  var b=ev.outputBuffer.getChannelData(0);
+  if(renoid&&exporting==0)
+    renoid.Proc(b,bufsize);
+  else {
+    for(var i=0;i<bufsize;++i)
+      b[i]=0;
+  }
+}
+window.addEventListener("message", webMidiLinkRecv, false);
+function webMidiLinkRecv(event) {
+  var msg = event.data.split(",");
+  switch (msg[0]) {
+  case "link":
+    switch(msg[1]) {
+    case "reqpatch":
+      event.source.postMessage("link,patch,"+GetPatchString(),"*");
+      break;
+    case "setpatch":
+      SetPatchString(msg[2]);
+      break;
+    }
+    break;
+  case "midi":
+    var s=parseInt(msg[1],16);
+    switch(s) {
+    case 0xf2:
+      if(renoid) {
+        renoid.player.Locate(parseInt(msg[2],16)+parseInt(msg[3],16)*128,0);
+      }
+      break;
+    case 0xfa:
+      if(renoid) {
+        renoid.player.Locate(0,1);
+        renoid.player.Start();
+      }
+      break;
+    case 0xfb:
+      if(renoid)
+        renoid.player.Start();
+      break;
+    case 0xfc:
+      if(renoid)
+        renoid.player.Stop();
+      break;
+    }
+    switch(s&0xf0) {
+    case 0x80:
+      if(renoid)
+        renoid.NoteOff(s&0xf,parseInt(msg[2], 16));
+      break;
+    case 0x90:
+      var velo = parseInt(msg[3], 16);
+      if(velo > 0) {
+        if(renoid)
+          renoid.NoteOn(s&0xf,parseInt(msg[2], 16), velo,0,0);
+      }
+      else {
+        if(renoid)
+          renoid.NoteOff(s&0xf,parseInt(msg[2], 16));
+      }
+      break;
+    case 0xb0:
+      if (parseInt(msg[2], 16) == 0x78) {
+        if(renoid)
+          renoid.Reset();
+      }
+      break;
+    }
+    break;
+  }
+}
+function LinkReady() {
+  if(window.opener)
+    window.opener.postMessage("link,ready","*");
+  else
+    window.parent.postMessage("link,ready","*");
+}
+function Init() {
+  ShowDoc(GetLang());
+  var ua=window.navigator.userAgent.toLowerCase();
+  if(ua.indexOf("android")!=-1)
+    bufsize=2048;
+  if(ua.indexOf("ipad")>=0||ua.indexOf("iphone")>=0||ua.indexOf("ipod")>=0||ua.indexOf("android")>=0||ua.indexOf("windows phone")>=0)
+    mobilemode=1;
+  else
+    mobilemode=0;
+  document.getElementById("slizoomx").addEventListener("input",CmdZoom);
+  document.getElementById("slizoomy").addEventListener("input",CmdZoom);
+  document.getElementById("paramtranspose").addEventListener("input",SetParam);
+  document.getElementById("paramporta").addEventListener("input",SetParam);
+  document.getElementById("paramkeep").addEventListener("input",SetParam);
+  document.getElementById("paramformant").addEventListener("input",SetParam);
+  document.getElementById("paramhuman").addEventListener("input",SetParam);
+  document.getElementById("paramvibdepth").addEventListener("input",SetParam);
+  document.getElementById("paramvibrate").addEventListener("input",SetParam);
+  document.getElementById("paramvibdelay").addEventListener("input",SetParam);
+  document.getElementById("paramvol").addEventListener("input",SetParam);
+  document.getElementById("btnplay").addEventListener("click",MMLPlay);
+  document.getElementById("btnstop").addEventListener("click",MMLStop);
+  document.getElementById("modeproll").addEventListener("click",SelMode);
+  document.getElementById("modemml").addEventListener("click",SelMode);
+  CmdZoom();
+  window.URL=window.URL||window.webkitURL;
+  DisableLink();
+  var v=document.getElementById("voice");
+  canvas=document.getElementById("cv");
+  canvasw=canvas.width;
+  canvash=canvas.height;
+  ctx=document.getElementById("cv").getContext("2d");
+  proll=new PianoRoll();
+  evlist=new EventList();
+  evlist.SetMML(document.getElementById("mml").value.toLowerCase());
+  canvas.onmousedown=PtrDown;
+  document.onmouseup=PtrUp;
+  document.onmousemove=PtrMove;
+  canvas.onkeydown=KeyDown;
+  canvas.ontouchstart=PtrDown;
+  canvas.ontouchend=PtrUp;
+  canvas.ontouchmove=PtrMove;
+  document.addEventListener("dragenter",DragEnter,false);
+  document.addEventListener("drop",Drop,false);
+  document.addEventListener("dragover",DragOver,false);
+  window.addEventListener('DOMMouseScroll', Wheel, false);
+  window.onmousewheel=document.onmousewheel=Wheel;
+  window.AudioContext = window.AudioContext || window.webkitAudioContext;
+  audioctx=new AudioContext();
+  scrproc=audioctx.createScriptProcessor(bufsize,1,1);
+  scrproc.onaudioprocess=AudioProc;
+  scrproc.connect(audioctx.destination);
+  dummysrc=audioctx.createOscillator();
+  dummysrc.connect(scrproc);
+  var rf=0;
+  if(location.search.length>1) {
+    strpatch = location.search.substring(1);
+    setTimeout(function() {
+      SetPatchString(strpatch);
+    },1000);
+  }
+  if(strpatch=="")
+    LoadRenoid(v.options[v.selectedIndex].value);
+  LinkReady();
+}
+
+function ShowDoc(x) {
+  var divs=document.getElementsByTagName("div");
+  var t="doc_"+x;
+  for(var i=0;i<divs.length;++i) {
+    if(divs[i].className==="doc_ja")
+      divs[i].style.display=(x==="ja")?"block":"none";
+    if(divs[i].className=="doc_en")
+      divs[i].style.display=(x==="ja")?"none":"block";
+  }
+}
+function GetLang() {
+  return (navigator.language || navigator.browserLanguage).substring(0, 2);
+}
