@@ -1,4 +1,710 @@
+<html>
+<head><style>body {transition: opacity ease-in 0.2s; } 
+body[unresolved] {opacity: 0; display: block; overflow: hidden; position: relative; } 
+</style>
+<title>RenoidPlayer | g200kg Music&amp;Software</title>
+<meta charset="utf-8">
+<script src="./webcomponents-lite.js"></script>
+<script src="./webaudio-controls.js"></script><style>#webaudioctrl-context-menu {
+  display: none;
+  position: absolute;
+  z-index: 10;
+  padding: 0;
+  width: 100px;
+  color:#eee;
+  background-color: #268;
+  border: solid 1px #888;
+  box-shadow: 1px 1px 2px #888;
+  font-family: sans-serif;
+  font-size: 11px;
+  line-height:1.7em;
+  text-align:center;
+  cursor:pointer;
+  color:#fff;
+  list-style: none;
+}
+#webaudioctrl-context-menu.active {
+  display: block;
+}
+.webaudioctrl-context-menu__item {
+  display: block;
+  margin: 0;
+  padding: 0;
+  color: #000;
+  background-color:#eee;
+  text-decoration: none;
+}
+.webaudioctrl-context-menu__title{
+  font-weight:bold;
+}
+.webaudioctrl-context-menu__item:last-child {
+  margin-bottom: 0;
+}
+.webaudioctrl-context-menu__item:hover {
+  background-color: #b8b8b8;
+}
+</style>
+<!--<script src="https://g200kg.github.io/webaudio-controls/webaudio-controls.js"></script>-->
+<style type="text/css">
+body {
+  font-family:sans-serif;
+  background-color:#fff;
+  font-size:small;
+  font-weight:normal;
+  color:#226;
+}
+#container {
+  background:#eef;
+  width:1060px;
+  margin:0px auto;
+  border:1px solid #88c;
+}
+#contents {
+  padding:5px 10px;
+  line-height:130%;
+}
+#header {
+  background-color:#335;
+  background: -moz-linear-gradient(top, #557, #335);
+  background: -webkit-gradient(linear, left top, left bottom, from(#557), to(#335));
+  background: linear-gradient(to bottom, #557, #335);
+  padding:5px;
+}
+#header img {
+  margin:0px 10px 0px 0px;
+  border:1px solid #228;
+}
+#main {
+  position:relative;
+  border:1px solid #66c;
+  padding:20px 4px;
+  margin:0px -2px;
+  height:750px;
+  border-radius:5px;
+  background-color:#445;
+}
+#base {
+  box-shadow: 8px 8px 8px rgba(0,0,0,0.5);
+  position:absolute;
+  left:25px;
+  top:40px;
+  padding:30px 15px;
+  margin:0px;
+  height:650px;
+  width:900px;
+  background:#ccc;
+  border:1px solid #000;
+  background: linear-gradient(to bottom, #222, #eee 5%, #ccc 10%, #aaa 95%,#222);
+  background: -moz-linear-gradient(top, #222, #eee 5%, #ccc 10%, #aaa 95%,#222);
+  background: -webkit-gradient(linear, left top, left bottom,
+   from(#222),color-stop(0.05,#eee), color-stop(0.1,#ccc), color-stop(0.95,#aaa), to(#222));
+}
+#pframe {
+  background:#335;
+  float:none;
+  color:#ccf;
+}
+.bar {
+  box-shadow: 4px 8px 8px rgba(0,0,0,0.5);
+  position:absolute;
+  top:35px;
+  width:15px;
+  height:725px;
+  background:#000;
+  border-radius:3px;
+  border-left:2px solid #888;
+  border-right:2px solid #000;
+  background: linear-gradient(to bottom, #000, #222 3%, #777 5%, #222 10%, #000);
+  background: -moz-linear-gradient(top, #000, #222 3%, #777 5%, #222 10%, #000);
+  background: -webkit-gradient(linear, left top, left bottom,
+   from(#000),color-stop(0.03,#222),color-stop(0.05,#777),color-stop(0.1,#222),to(#000));
+}
+#buttons {
+  height:60px;
+}
+.cmdbtn {
+  display:block;
+  float:left;
+}
+#buttons label {
+  display:block;
+  float:left;
+  height:24px;
+  margin:0px;
+  box-shadow: 2px 2px 3px rgba(0,0,0,0.4);
+}
+.btnhdr {
+  margin-left:20px;
+  float:left;
+}
 
+h1 {
+  color:#eef;
+  margin: 10px;
+  padding: 0px;
+  font-weight: bold;
+}
+@media screen and (min-device-width: 481px) {
+input {
+  background-color:#fff;
+  border:1px solid #aaa;
+  margin:0px;
+  padding:0px;
+  text-align:center;
+  font-size:normal;
+}
+button {
+  color:#000;
+  font-size:12px;
+  font-family:Arial,sans-serif;
+  font-weight:normal;
+  text-align:center;
+  margin:0px;
+  padding:0px 8px;
+  width:50px;
+  height:26px;
+  line-height:24px;
+  vertical-align:middle;
+  border:1px solid #333;
+  border-radius:5px;
+  background:#eee;
+  background: linear-gradient(to bottom, #232, #eee 10%, #888 90%,#232);
+  background: -moz-linear-gradient(top, #232, #eee 10%, #888 90%,#232);
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #232), color-stop(0.1,#eee),color-stop(0.9,#888),color-stop(1, #232));
+  box-shadow: 2px 2px 3px rgba(0,0,0,0.4);
+}
+label {
+  display:block;
+  float:left;
+  color:#000;
+  font-size:12px;
+  font-family:Arial,sans-serif;
+  font-weight:normal;
+  text-align:center;
+  margin:0px;
+  padding:0px 8px;
+  width:50px;
+  height:22px;
+  line-height:22px;
+  vertical-align:middle;
+  border:1px solid #333;
+  border-radius:5px;
+  background:#eee;
+  background: linear-gradient(to bottom, #232, #eee 10%, #888 90%,#232);
+  background: -moz-linear-gradient(top, #232, #eee 10%, #888 90%,#232);
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #232), color-stop(0.1,#eee),color-stop(0.9,#888),color-stop(1, #232));
+  box-shadow: 2px 2px 3px rgba(0,0,0,0.4);
+}
+textarea {
+  border:1px solid #66c;
+  font-size:12px;
+}
+}
+@media screen and (max-device-width: 480px) {
+input {
+  background-color:#fff;
+  border:1px solid #aaa;
+  margin:0px;
+  padding:0px;
+  text-align:center;
+  font-size:16px;
+}
+button {
+  color:#000;
+  font-size:16px;
+  font-family:Arial,sans-serif;
+  font-weight:normal;
+  text-align:center;
+  margin:0px;
+  padding:0px 8px;
+  height:26px;
+  line-height:24px;
+  vertical-align:middle;
+  border:1px solid #333;
+  border-radius:15px;
+  background:#eee;
+  background: linear-gradient(to bottom, #232, #eee 10%, #888 90%,#232);
+  background: -moz-linear-gradient(top, #232, #eee 10%, #888 90%,#232);
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #232), color-stop(0.1,#eee),color-stop(0.9,#888),color-stop(1, #232));
+  box-shadow: 2px 2px 3px rgba(0,0,0,0.4);
+}
+label {
+  display:block;
+  float:left;
+  color:#000;
+  font-size:16px;
+  font-family:Arial,sans-serif;
+  font-weight:normal;
+  text-align:center;
+  margin:0px;
+  padding:0px 8px;
+  height:22px;
+  line-height:22px;
+  vertical-align:middle;
+  border:1px solid #333;
+  border-radius:5px;
+  background:#eee;
+  background: linear-gradient(to bottom, #232, #eee 10%, #888 90%,#232);
+  background: -moz-linear-gradient(top, #232, #eee 10%, #888 90%,#232);
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #232), color-stop(0.1,#eee),color-stop(0.9,#888),color-stop(1, #232));
+  box-shadow: 2px 2px 3px rgba(0,0,0,0.4);
+}
+textarea {
+  border:1px solid #66c;
+  font-size:18px;
+}
+}
+
+hr {
+  height:3px;
+  color:#a0a0f0;
+  background-color:#aaf;
+  border:1px;
+}
+table {
+  border:1px solid #aae;
+}
+table td {
+  border:1px solid #aae;
+  padding:0px 2px;
+}
+input:active+label {
+  background:#fa4;
+  background: linear-gradient(to bottom, #875, #edb 10%, #a97 90%,#875);
+  background: -moz-linear-gradient(top, #875, #edb 10%, #a97 90%,#875);
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #b60), color-stop(0.1,#fa4),color-stop(0.9,#e93),color-stop(1, #b60));
+}
+input:checked+label {
+  background:#fa4;
+  background: linear-gradient(to bottom, #fa4, #fa4 10%, #e93 90%,#b60);
+  background: -moz-linear-gradient(top, #fa4, #fa4 10%, #e93 90%,#b60);
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #b60), color-stop(0.1,#fa4),color-stop(0.9,#e93),color-stop(1, #b60));
+}
+#pframe button {
+  float:left;
+}
+
+button:active {
+  background:#f71;
+}
+
+</style>
+</head>
+<body onload="Init()">
+<div id="container">
+ <div id="header">
+  <div style="overflow:hidden">
+   <a href="http://www.g200kg.com/"><img alt="" src="images/g200kg160x80.png" style="float:left"></a>
+   <h1>Renoid Player</h1>
+  </div>
+ </div>
+ <div id="contents">
+
+<button onclick="ShowDoc('en')" style="width:80px">English</button> | <button onclick="ShowDoc('ja')" style="width:80px">Japanese</button>
+<hr>
+<div class="doc_ja" style="display: block;">
+<p>GUIを<a href="https://github.com/g200kg/webaudio-controls/" target="_blank">WebAudio-Controls</a>を使ったものに入れ替えました。<br>
+旧バージョンはこちら：<a href="./index-08.html">index-08.html</a>
+</p>
+<hr>
+<p>Renoise-gateのサトーさん発案の「Renoid」のテストページです。RenoidはRenoise-XRNIファイルまたはSoundFont-SF2ファイルに各ひらがなの発音を収め、
+ピッチコレクターと併用する事で歌を歌わせるというものです。
+Renoidの詳細は下のページに説明があります。<br>
+このページではSoundFont形式のRenoidファイルを使用してブラウザ上で歌を歌わせるテストを行っています。<br>
+メロディの編集はピアノロールまたは歌詞付MMLで行うことができます。
+<br>
+<b><a href="http://reg.s63.xrea.com/" target="_blank">Renoise-gate</a></b><br>
+<b><a href="http://reg.s63.xrea.com/Renoid/" target="_blank">Renoid</a></b><br>
+</p>
+<h3>使用しているRenoidボイスファイル</h3>
+<p>Renoidの各ボイスファイルの著作権は以下の方々にあります。このページではそれぞれの制作者の許諾のもとに各ボイスファイルを使用しています。
+</p>
+<b>朝音ボウ</b>： (朝音ボウ配布所) <a href="http://asane.coresv.com/" target="_blank">http://asane.coresv.com/</a><br>
+<b>ほのか鳴（めい）</b>： (ほのか鳴公式サイト) <a href="http://srtm.choumusubi.com/honoka.html" target="_blank">http://srtm.choumusubi.com/honoka.html</a><br>
+<b>和音マコ</b>： (和音マコ音源配布所) <a href="http://kenchan22.web.fc2.com/i/nagonemakovoice.html" target="_blank">http://kenchan22.web.fc2.com/i/nagonemakovoice.html</a><br>
+<b>重音テト</b> 重音テト音声ライブラリー(単独音) (c) 線/小山乃舞世/ツインドリル 2008 All Rights Reserved ： (重音テトオフィシャルサイト) <a href="http://kasaneteto.jp/" target="_blank">http://kasaneteto.jp/</a><br>
+<b>Hana/Jutero/Nina/Qurio</b>： (Renoise-gate) <a href="http://reg.s63.xrea.com/Renoid/" target="_blank">http://reg.s63.xrea.com/Renoid/</a><br>
+<hr>
+* Chrome/Firefox/IE10/Opera/Safariで動作します。<br>
+(iOS6のiPhone/iPadでも動作します。Android-Nexus7でも一応動作しますがパフォーマンスがかなりぎりぎりです)
+</div>
+
+<div class="doc_en" style="display: none;">
+<p>GUI is replaced with <a href="https://github.com/g200kg/webaudio-controls/" target="_blank">WebAudio-Controls</a> version.<br>
+Follow the link if you prefer the old version : <a href="./index-08.html">index-08.html</a>
+</p>
+<hr>
+<p>This is a <b>Renoid</b> test page based on the idea of Sato-san, the Renoise-Gate webmaster.
+<b>Renoid</b> is a virtual singer system using Renoise XRNI or SoundFont SF2 sound library and cascaded pitch-corrector.
+By this, virtual singing is available without any special program.
+</p>
+<p>This page trying a little different approach that singing engine is implemented as a web-based app using a SoundFont Renoid file.
+</p>
+<p>Details of <b>Renoid</b> are available on
+<br>
+<b><a href="http://reg.s63.xrea.com/" target="_blank">Renoise-gate</a></b><br>
+<b><a href="http://reg.s63.xrea.com/Renoid/" target="_blank">Renoid</a></b><br>
+</p>
+<h3>Renoid VoiceFiles</h3>
+<p>Each Renoid voice files use materials from:
+</p>
+<b>Asane-Bow</b>： (朝音ボウ配布所) <a href="http://asane.coresv.com/" target="_blank">http://asane.coresv.com/</a><br>
+<b>Honoka-Mei</b>： (ほのか鳴公式サイト) <a href="http://srtm.choumusubi.com/honoka.html" target="_blank">http://srtm.choumusubi.com/honoka.html</a><br>
+<b>Nagone-Mako</b>： (和音マコ音源配布所) <a href="http://kenchan22.web.fc2.com/i/nagonemakovoice.html" target="_blank">http://kenchan22.web.fc2.com/i/nagonemakovoice.html</a><br>
+<b>Kasane-Teto</b> Kasane-Teto Voice Library (Tandoku-On) (c) Sen/Oyamano-Mayo/TwinDrill 2008 All Rights Reserved : (Official Site) <a href="http://kasaneteto.jp/" target="_blank">http://kasaneteto.jp/</a><br>
+<b>Hana/Jutero/Nina/Qurio</b>： (Renoise-gate) <a href="http://reg.s63.xrea.com/Renoid/" target="_blank">http://reg.s63.xrea.com/Renoid/</a><br>
+<hr>
+* Supported Chrome/Firefox/IE10/Opera/Safari<br>
+(iPhone/iPad (iOS6) are also supported. Android-Nesux7 is barely workable but the performance is severe.)
+</div>
+
+
+<div style="position:relative;width:1024px;margin:10px auto">
+  <div style="position:absolute;left:130px;top:90px;color:#303830">
+    <select id="voice" onchange="SelVoice(this.value)" style="width:220px;color:#303830;background:#ccb;font-weight:900;border:1px solid #884">
+      <option value="Asane-Bow_v1.2_(63-4).sf2">Asane-Bow 朝音ボウ (63-4)</option>
+      <option value="Honoka-Mei_v1.2_(65-4).sf2" selected="">Honoka-Mei ほのか鳴 (65-4)</option>
+      <option value="Nagone-Mako_(64-4).sf2">Nagone-Mako 和音マコ (64-4)</option>
+      <option value="Kasane-Teto_(63-4).sf2">Kasane-Teto 重音テト (63-4)</option>
+      <option value="Hana_v1.2_(67-4).sf2">Hana (67-4)</option>
+      <option value="Jutero_v1.2_(42-2).sf2">Jutero (42-2)</option>
+      <option value="Nina_v1.2_(67-4).sf2">Nina (67-4)</option>
+      <option value="Qurio_v1.2_(51-3).sf2">Qurio (51-3)</option>
+      <option value="Robozawa-200kg_(45-2).sf2">Robozawa-200kg (45-2)</option>
+    </select>
+    <input onchange="LoadRenoidLocal(event)" id="file" type="file" style="border:1px solid #884;color:#303830;background:#ccb"><br>
+    Renoid-File : <b><span id="rname">Honoka-Mei_v1.2_(65-4).sf2</span></b>
+  </div>
+  <img src="images/bg.png">
+  <webaudio-knob id="paramtranspose" style="position: absolute; left: 110px; top: 180px; height: 70px;" src="images/knob_70_white.png" diameter="70" min="-24" max="24" value="0" sprites="100" valuetip="0"></webaudio-knob>
+  <webaudio-param link="paramtranspose" src="" colors="#ee8;#448" width="40" style="position:absolute;left:140px;top:164px"></webaudio-param>
+  <webaudio-knob id="paramporta" style="position: absolute; left: 190px; top: 180px; height: 70px;" src="images/knob_70_white.png" diameter="70" min="0" max="100" value="55" sprites="100" valuetip="0"></webaudio-knob>
+  <webaudio-param link="paramporta" src="" colors="#ee8;#448" width="40" style="position:absolute;left:220px;top:164px"></webaudio-param>
+  <webaudio-switch id="paramkeep" style="position: absolute; left: 270px; top: 188px; height: 56px;" src="images/switch_toggle.png" width="56" height="56" value="1"></webaudio-switch>
+  <webaudio-knob id="paramformant" style="position: absolute; left: 350px; top: 180px; height: 70px;" src="images/knob_70_white.png" diameter="70" min="-100" max="100" value="0" sprites="100" valuetip="0"></webaudio-knob>
+  <webaudio-param link="paramformant" src="" colors="#ee8;#448" width="40" style="position:absolute;left:380px;top:164px"></webaudio-param>
+  <webaudio-knob id="paramhuman" style="position: absolute; left: 430px; top: 180px; height: 70px;" src="images/knob_70_white.png" diameter="70" min="0" max="100" value="20" sprites="100" valuetip="0"></webaudio-knob>
+  <webaudio-param link="paramhuman" src="" colors="#ee8;#448" width="40" style="position:absolute;left:460px;top:164px"></webaudio-param>
+  <webaudio-knob id="paramvibdepth" style="position: absolute; left: 510px; top: 180px; height: 70px;" src="images/knob_70_white.png" diameter="70" min="0" max="100" value="30" sprites="100" valuetip="0"></webaudio-knob>
+  <webaudio-param link="paramvibdepth" src="" colors="#ee8;#448" width="40" style="position:absolute;left:540px;top:164px"></webaudio-param>
+  <webaudio-knob id="paramvibrate" style="position: absolute; left: 590px; top: 180px; height: 70px;" src="images/knob_70_white.png" diameter="70" min="1" max="100" value="50" sprites="100" valuetip="0"></webaudio-knob>
+  <webaudio-param link="paramvibrate" src="" colors="#ee8;#448" width="40" style="position:absolute;left:620px;top:164px"></webaudio-param>
+  <webaudio-knob id="paramvibdelay" style="position: absolute; left: 670px; top: 180px; height: 70px;" src="images/knob_70_white.png" diameter="70" min="1" max="100" value="40" sprites="100" valuetip="0"></webaudio-knob>
+  <webaudio-param link="paramvibdelay" src="" colors="#ee8;#448" width="40" style="position:absolute;left:700px;top:164px"></webaudio-param>
+  <webaudio-knob id="paramvol" style="position: absolute; left: 750px; top: 180px; height: 70px;" src="images/knob_70_white.png" diameter="70" value="80" sprites="100" valuetip="0"></webaudio-knob>
+  <webaudio-param link="paramvol" src="" colors="#ee8;#448" width="40" style="position:absolute;left:780px;top:164px"></webaudio-param>
+<!--
+  <button class="cmdbtn" id="btnplay" style="position:absolute;left:72px;top:288px;width:80px;height:40px;margin:2px;"><img alt="" src="images/iconplay.png"/>Play</button>
+  <button class="cmdbtn" id="btnstop" style="position:absolute;left:156px;top:288px;width:80px;height:40px;margin:2px;"><img alt="" src="images/iconstop.png"/>Stop</button>
+-->
+  <webaudio-switch id="btnplay" type="kick" src="images/btnplay.png" width="80" height="50" style="position: absolute; left: 80px; top: 280px; height: 50px;"></webaudio-switch>
+  <webaudio-switch id="btnstop" type="kick" src="images/btnstop.png" width="80" height="50" style="position: absolute; left: 164px; top: 280px; height: 50px;"></webaudio-switch>
+  <webaudio-switch id="btnloop" type="toggle" value="1" width="26" height="26" style="position: absolute; left: 250px; top: 305px; height: 26px;" colors="#22c;#888;#88c"></webaudio-switch>
+
+  <webaudio-switch type="radio" group="mode" id="modeproll" width="80" height="28" src="images/btnpiano.png" style="position: absolute; left: 282px; top: 280px; height: 28px;" tooltip="ピアノロールモード" value="1"></webaudio-switch>
+  <webaudio-switch type="radio" group="mode" id="modemml" width="80" height="28" src="images/btnmml.png" style="position: absolute; left: 282px; top: 308px; height: 28px;" tooltip="MMLモード"></webaudio-switch>
+  <webaudio-switch type="kick" width="80" height="28" tooltip="このページへのリンクとして書き出します" src="images/btnurl.png" style="position: absolute; left: 400px; top: 280px; height: 28px;" onclick="MakeURL()"></webaudio-switch>
+  <webaudio-switch type="kick" width="80" height="28" tooltip="WAVファイルとして書き出します" src="images/btnwav.png" style="position: absolute; left: 480px; top: 280px; height: 28px;" onclick="CmdExport()"></webaudio-switch>
+  <webaudio-switch type="kick" width="80" height="28" tooltip="MusicXML形式で書き出します" src="images/btnxml.png" style="position: absolute; left: 560px; top: 280px; height: 28px;" onclick="SaveXml()"></webaudio-switch>
+
+<!--
+  <input class="cmdbtn" type="radio" name="mode" id="modeproll" onclick="SelMode()" style="display:none" checked/>
+  <label class="cmdbtn" for="modeproll" title="ピアノロールモード" style="position:absolute;left:250px;top:280px;margin-left:15px;width:50px">PianoRoll</label>
+  <input class="cmdbtn" type="radio" name="mode" id="modemml" style="display:none" onclick="SelMode()"/>
+  <label class="cmdbtn" for="modemml" title="MMLモード" style="position:absolute;left:333px;top:280px;width:50px"> MML</label>
+
+  <button  id="makeurl" onclick="MakeURL()" title="このページへのリンクとして書き出します" style="position:absolute;left:420px;top:280px;width:80px;">MakeURL</button>
+  <button  id="export" onclick="CmdExport()" title="WAVファイルとして書き出します" style="position:absolute;left:500px;top:280px;width:80px;">ExportWav</button>
+  <button  id="exportxml" onclick="SaveXml()" title="MusicXML形式で書き出します" style="position:absolute;left:580px;top:280px;width:80px;">ExportXML</button>
+-->
+
+  <div style="position:absolute;left:380px;top:310px;padding:5px">
+     <a id="linkurl" style="display: none; margin: 5px 0px 0px 20px; padding: 0px 4px; width: 150px; background: rgb(221, 221, 221); color: rgb(187, 187, 187); border: 1px solid rgb(136, 136, 136);" target="_blank">この曲へのリンク</a>
+     <a id="linkwav" style="display:none;margin:5px 0px 0px 20px;padding:0px 4px;width:150px;background:#ddd;color:#bbb;border:1px solid #888" target="_blank">WAVファイルへのリンク</a>
+     <a id="linkxml" style="display:none;margin:5px 0px 0px 20px;padding:0px 4px;width:150px;background:#ddd;color:#bbb;border:1px solid #888" target="_blank">XMLファイルへのリンク</a>
+  </div>
+<div id="pframe" style="position:absolute;left:65px;top:358px;width:888px;height:380px;border-radius:5px">
+  <div id="prollmode">
+    <div>
+      <div class="btnhdr">Mode:</div>
+      <input type="radio" id="edits" name="edmode" onclick="CmdEdit('s')" style="display:none">
+      <label for="edits" title="選択モード (S)" style="width:30px"> Sel </label>
+      <input type="radio" id="edita" name="edmode" onclick="CmdEdit('a')" style="display:none" checked="">
+      <label for="edita" title="編集モード (E)" style="width:30px"> Edit </label>
+      <div class="btnhdr">Cmd:</div>
+      <button onclick="CmdNew()" title="新規">New</button>
+      <button onclick="CmdDel()" title="削除 (Del)">Del</button>
+      <button onclick="CmdCopy()" title="コピー (Ctrl+C)">Copy</button>
+      <button onclick="CmdPaste()" title="ペースト (Ctrl+V)">Paste</button>
+      <div class="btnhdr">Grid:</div>
+      <select id="grid" onchange="CmdGrid(parseInt(this.options[this.selectedIndex].value))">
+        <option value="32">1/32</option>
+        <option value="16" selected="">1/16</option>
+        <option value="12">1/12</option>
+      </select>
+      <webaudio-slider id="slizoomx" direction="horz" min="0" max="100" value="25" valuetip="0" src="images/hsliderbody.png" knobsrc="images/sliderknob.png" width="180" height="28" style="position: absolute; top: 8px; left: 685px; height: 28px;"></webaudio-slider>
+      <webaudio-slider id="slizoomy" min="0" max="100" value="40" valuetip="0" src="images/vsliderbody.png" knobsrc="images/sliderknob.png" width="28" height="180" style="position: absolute; top: 42px; left: 871px; height: 180px;"></webaudio-slider>
+    </div>
+    <br>
+    <div id="pianoroll" style="position:relative;overflow:hidden;padding:0px 0px 30px 0px;width:870px;height:300px">
+      <canvas id="cv" width="870" height="330" tabindex="1" style="border:1px solid #222;outline:none;"></canvas>
+    <input type="text" style="text-align: left; width: 59.4771px; position: absolute; top: 306px; left: 200px;"><input type="text" style="text-align: left; width: 59.4771px; position: absolute; top: 306px; left: 263.442px;"><input type="text" style="text-align: left; width: 59.4771px; position: absolute; top: 306px; left: 326.885px;"><input type="text" style="text-align: left; width: 59.4771px; position: absolute; top: 306px; left: 390.327px;"><input type="text" style="text-align: left; width: 59.4771px; position: absolute; top: 306px; left: 453.769px;"><input type="text" style="text-align: left; width: 59.4771px; position: absolute; top: 306px; left: 517.211px;"><input type="text" style="text-align: left; width: 59.4771px; position: absolute; top: 306px; left: 580.654px;"><input type="text" style="text-align: left; width: 59.4771px; position: absolute; top: 306px; left: 644.096px;"><input type="text" style="text-align: left; width: 59.4771px; position: absolute; top: 306px; left: 707.538px;"><input type="text" style="text-align: left; width: 59.4771px; position: absolute; top: 306px; left: 770.98px;"><input type="text" style="text-align: left; width: 59.4771px; position: absolute; top: 306px; left: 834.423px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"><input type="text" style="text-align: left; width: 100px; position: absolute; top: 306px; left: -1000px;"></div>
+  </div>
+  <div id="mmlmode" style="display:none">
+    <h3>歌詞付きMML</h3>
+    <textarea id="mml" cols="80" rows="13" oninput="Update()">T100O4L8あかいくつcde-fg4.rはいてたg4a-fg4.rおんなのこg4&gt;c4e-4c4d2.r4いじんさんにc4cc&lt;a-a-a-4つれられてg4ggf4a-4いいちゃたg4a-rg4r4c2.r4r1r1r1r1r1</textarea>
+  </div>
+</div>
+
+</div>
+<hr>
+This GUI use the <a href="https://github.com/g200kg/webaudio-controls/" target="_blank">WebAudio-Controls</a> library.<br>
+Knob and switch images are by <a href="http://bji.yukihotaru.com/" target="_blank">az</a> (c) 2011 licensed under <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">CC-BY</a>.<br>
+Also available in <a href="http://www.g200kg.com/en/webknobman/gallery.php" target="_blank">KnobGallery</a>
+<hr>
+
+<div class="doc_ja" style="display: block;">
+<h3>ピアノロールとMML</h3>
+<p>再生/停止ボタンの隣にある[PianoRoll][MML]ボタンで切り替える事でピアノロールとMMLのどちらでも編集できます。
+ピアノロール上では同じタイミングで複数の音が出るようなデータを一時的に作る事ができますが、単音でしか演奏されません。
+また[MML]モードに切り替えたり、リンクとして保存すると重なっている部分の音は失われます。
+</p>
+<h3>開始/終了マーカー</h3>
+<p>ピアノロールの上部に表示される緑の三角形は再生時の開始/終了位置を示します。左右にドラッグして必要な部分だけを再生する事ができます。
+なお、開始/終了マーカーはピアノロールモードでしか表示されませんが、MMLモードでも有効です。
+</p>
+<h3>パラメータの説明</h3>
+<table>
+<tbody><tr><td>Volume</td><td>ボリューム。音量を調整します</td></tr>
+<tr><td>Transpose</td><td>トランスポーズ。半音単位で音程を調整します</td></tr>
+<tr><td>Portamento</td><td>ポルタメント。音程の変化を滑らかにします</td></tr>
+<tr><td>FormantCorrection</td><td>フォルマント補正。音程が変わっても声の質が変わらないように補正します</td></tr>
+<tr><td>Formant</td><td>フォルマント。声の質を調整します</td></tr>
+<tr><td>Humanize</td><td>ヒューマナイズ。音程と音量にゆらぎを追加します</td></tr>
+<tr><td>VibratoDepth</td><td>ビブラートの深さを調整します。なお、ビブラートはDelayパラメータによってかかり始めるまでの時間が変化します。</td></tr>
+<tr><td>VibratoRate</td><td>ビブラートの速度を調整します</td></tr>
+<tr><td>VibratoDelay</td><td>ビブラートがかかり始めるまでの時間を調整します</td></tr>
+</tbody></table>
+<hr>
+<h3>データのインポート</h3>
+<p>RenoidPlayerに以下のファイルをドロップするとシーケンスファイルとして読み込みます。
+ただし、読み込むのはノート情報とひらがな表記の歌詞だけですので、ピッチベンドを使ったり発音を分割するなど凝ったデータでは
+かなり原型をとどめなくなります。
+</p>
+<ul>
+<li>Vocaloidのvsq/vsqxファイル(.vsq/.vsqx)</li>
+<li>UTAUのustファイル(.ust)</li>
+<li>CeVIOのccsファイル(.ccs)</li>
+<li>MusicXMLファイル(.xml)</li>
+</ul>
+<hr>
+<h3>データのエクスポート</h3>
+<h3>MakeURL</h3>
+<p>[MakeURL]ボタンを押すと現在編集中の曲をURLとして書き出す事ができます。このURLにブラウザでアクセスすると曲が読み込まれた状態で立ち上がります。
+ただし曲が長くなるとURLも非常に長くなりますので、環境によってはうまく動作しない場合もあります。
+</p>
+<h3>ExportWav</h3>
+<p>[ExportWav]ボタンを押すと、ピアノロールの開始/終了マーカーではさまれた部分をWAVファイルとして書き出します。ボタンを押した後、
+表示されるリンクから保存してください。<br>
+<b>注:Mac-Safariでは曲の編集や再生は可能ですがWavExportはできません。WavExportを行う場合はChromeやFirefoxを使用してください。</b>
+</p>
+<h3>ExportXML</h3>
+<p>[ExportXML]ボタンを押すと現在編集中の曲をMusicXML形式で書き出します。
+ボタンを押した後表示されるリンクからダウンロードしてください。MusicXMLデータはCeVIOへの入力データなどとして使用できます。
+</p>
+</div>
+
+<div class="doc_en" style="display: none;">
+<h3>PianoRoll and MML</h3>
+<p>PianoRoll mode and MML mode are switched by the button [PianoRoll][MML].
+In PianoRoll mode, temporarily simultaneous multiple notes can be placed on same timing but it will be played as monophonic.
+These notes will be lost when switching to MML mode or saving as a URL.
+</p>
+<h3>Start/Stop marker</h3>
+<p>The green triangle marks on the PianoRoll are current start/stop position.
+Only the region between start and stop are played.
+These markers are draggable left/right. Note that displayed only in PianoRoll mode but effective also in MML mode.
+</p>
+<h3>Parameters</h3>
+<table>
+<tbody><tr><td>Volume</td><td>Output volume control.</td></tr>
+<tr><td>Transpose</td><td>Output pitch control, semi-note step.</td></tr>
+<tr><td>Portamento</td><td>Pitch change smoothness control.</td></tr>
+<tr><td>FormantCorrection</td><td>Keep formant independently of output pitch.</td></tr>
+<tr><td>Formant</td><td>Formant control.</td></tr>
+<tr><td>Humanize</td><td>Add some fluctuation to pitch and dynamics.</td></tr>
+<tr><td>VibratoDepth</td><td>Amount of vibrato. Note that the vibrato has the delay time to start by 'VibratoDelay' parameter.</td></tr>
+<tr><td>VibratoRate</td><td>Vibrato speed control.</td></tr>
+<tr><td>VibratoDelay</td><td>Delay time to start vibrato.</td></tr>
+</tbody></table>
+<hr>
+<h3>Data import</h3>
+<p>RenoidPlayer can accept file-drop as a sequence data.
+(Note infomation and basic lyric informations only. Pitch-bends and other additional informations are ignored.)
+</p>
+<ul>
+<li>Vocaloid : vsq/vsqx files(.vsq/.vsqx)</li>
+<li>UTAU : ust files(.ust)</li>
+<li>CeVIO : ccs files(.ccs)</li>
+<li>MusicXML(.xml)</li>
+</ul>
+<hr>
+<h3>Data Export</h3>
+<h3>MakeURL</h3>
+<p>[MakeURL] button make a URL to this song. this URL contains whole song data.
+Note that it may fail to access in some environment because the URL is too long.
+</p>
+<h3>ExportWav</h3>
+<p>[ExportWav] button render the song (region between start/stop markers) to wav-file. </p>
+<b>Note:Mac-Safari can not support ExportWav. please use Chrome/Firefox when ExportWav on Mac.</b>
+<h3>ExportXML</h3>
+<p>[ExportXML] button export the song as a MusicXML file.
+</p>
+</div>
+
+<hr>
+
+<div class="doc_ja" style="display: block;">
+<h3>ピアノロールの使い方</h3>
+<p>[Edit]モードと[Sel]モードがあります。[Edit]モードはノートを追加してゆく時、[Sel]モードは複数ノートの
+コピー&amp;ペーストなどをする場合に使用します。最初は[Edit]モードになっています。
+</p><table>
+<tbody><tr><td style="width:120px">スクロール</td><td>一番上の小節を表示している行または鍵盤の左の色の濃い部分をドラッグします。</td></tr>
+<tr><td>ノートの追加</td><td>[Edit]モードでピアノロール上のノートを追加したい場所をドラッグします。</td></tr>
+<tr><td>ノートの編集</td><td>ノートをドラッグして移動できます。長さを変更するには編集したいノートを１つだけ選択(緑表示)した後前端/後端をドラッグします。削除するには選択した後[Del]ボタンまたは[Del]キーを押します(複数のノートを選択している状態では長さの編集はできません)。</td></tr>
+<tr><td>ブロックの編集</td><td>[Sel]モードでは複数のノートをまとめて選択できます。ノートの無い場所からドラッグすると領域内にある複数のノートをまとめて選択できます。選択したノートをまとめて移動いたり、[Del]ボタンで削除、[Copy]および[Paste]ボタンでコピーする事ができます。</td></tr>
+<tr><td>テンポ指定の追加</td><td>テンポ表示行(小節表示行の下)の任意の場所をクリックします。</td></tr>
+<tr><td>テンポ指定の削除</td><td>テンポ表示をクリックして選択し(緑表示)、[Del]ボタンまたは[Del]キーを押します。</td></tr>
+<tr><td>テンポの編集</td><td>テンポ表示をまず選択した後、上下にドラッグします。</td></tr>
+<tr><td>歌詞編集</td><td>各小節下のテキストボックスで編集します。対応するノートより前に入っていれば小節毎に対応していなくても構いません。</td></tr>
+</tbody></table>
+<br>
+<hr>
+<h3>歌詞付MMLの説明</h3>
+<p>一般的なMML(Music Macro Language)にひらがなまたはカタカナで歌詞を埋め込みます。かな自体は音色の切り替えをおこなうだけで実際に発音するのは通常のMMLで行います。
+歌詞は複数のかなを事前にまとめて指定する事ができます。この場合ノートコマンド(A-G)毎にひとつの発音指定(かな1～3文字)が割り当てられます。
+</p>
+<hr>
+<h3>MMLの説明</h3>
+<table border="1">
+<tbody><tr><td>T</td><td>テンポ指定。デフォルトはT120</td></tr>
+<tr><td>O</td><td>オクターブ指定。デフォルトはO4</td></tr>
+<tr><td>L</td><td>音の長さ。デフォルトはL8(8分音符)</td></tr>
+<tr><td>&gt;</td><td>以降のオクターブを+1する</td></tr>
+<tr><td>&lt;</td><td>以降のオクターブを-1する</td></tr>
+<tr><td>A,B,C,D,E,F,G</td><td>ノート。後ろに"+"があればシャープ。"-"があればフラット。後ろに数字を付けると音の長さ(無い場合はLで指定された長さになる)。
+また長さに'%'を付けるとタイムベースで長さを指定(デフォルトのタイムベースは16分音符単位)
+</td></tr>
+<tr><td>R</td><td>休符。後ろに数字があれば長さ(無い場合はLで指定された長さになる)</td></tr>
+<tr><td>.</td><td>付点。A-G、Rの後ろに付ける事で付点付き音符となる</td></tr>
+<tr><td>#%&lt;nn&gt;;</td><td>音長を「%」で指定する際に使用するタイムベースの指定です。デフォルトは16分音符単位(#%4;)、ピアノロールで編集すると(#%480;)となります。</td></tr>
+</tbody></table>
+<br>
+</div>
+
+<div class="doc_en" style="display: none;">
+<h3>How to use PianoRoll</h3>
+<p>There are [Edit] mode and [Sel] mode. [Edit] mode is used when adding notes and [Sel] mode is used when
+selecting multiple notes and move, copy/paste or delete. the [Edit] mode is selected in default.
+</p><table>
+<tbody><tr><td style="width:120px">Scroll</td><td>Drag the dark color part of meas display row or left of keyboard.</td></tr>
+<tr><td>Adding notes</td><td>Drag on PianoRoll in [Edit] mode.</td></tr>
+<tr><td>Editing notes</td><td>Drag a note on PianoRoll for move. Drag start edge or stop edge of note after once select(displayed as green) for duration change. Press [Del] button or [Del] key after select for delete.
+</td></tr>
+<tr><td>Multiple notes editing</td><td>Drag area in [Sel] mode for multiple select. After select, Press [Del] button/key for delete or [Copy]/[Paste] for duplicate, drag for move.</td></tr>
+<tr><td>Adding tempo change</td><td>Click the tempo display row (slightly dark row under the meas display).</td></tr>
+<tr><td>Deleting tempo change</td><td>After select the tempo marker (displayed as green), press [Del]button/key.</td></tr>
+<tr><td>Editing tempo change</td><td>After select the tempo marker (displayed as green), drag up/down.</td></tr>
+<tr><td>Editing lyrics</td><td>Enter lyrics to text-boxes under the PianoRoll. Each lyrics should be entered prior than corresponding note.</td></tr>
+</tbody></table>
+<br>
+<hr>
+<h3>MML with lyrics</h3>
+<p>The MML of RenoidPlayer is lyrics embedded. Each words will just change the pronounciation and actual sounds are triggered by the general MML commands.
+Each pronouciation is specified by japanese 'Kana'-character or alphabetic-'Romaji'.
+</p>
+<hr>
+<h3>MML commands</h3>
+<table border="1">
+<tbody><tr><td>T</td><td>Specifying tempo. 'T120' in default.</td></tr>
+<tr><td>O</td><td>Specifying octave. 'O4' in default.</td></tr>
+<tr><td>L</td><td>Default note duration. 'L8' (=eighth note) in default.</td></tr>
+<tr><td>&gt;</td><td>Octave up.</td></tr>
+<tr><td>&lt;</td><td>Octave down.</td></tr>
+<tr><td>A,B,C,D,E,F,G</td><td>Notes. Following '+' specify semitone sharp, and following '-' specify semitone flat. Additionally, duration can be
+specified by following numbers or '%'+numbers.
+The '%'+numbers means the timebased (specified by the '#%' command). If no duration is specified, the note will be default length specified by 'L' command.</td></tr>
+<tr><td>R</td><td>Rest. The duration can be specified same as notes.</td></tr>
+<tr><td>.</td><td>Specify 'dotted' note. Should follow the A-G or R commands.</td></tr>
+<tr><td>#%&lt;nn&gt;;</td><td>Timebase that will be used when duration spcifying by '%'. Sixteenth note base (#%4;) in MML default, and #%480; in PianoRoll.</td></tr>
+</tbody></table>
+<br>
+</div>
+
+<hr>
+
+<div class="doc_ja" style="display: block;">
+<h3>歌詞入力の説明</h3>
+<p>使用できる発音は下の表にあるもの、およびこれらに「っ」を付けた1～3文字が1つの音を表します。
+なお、促音「っ」は音色自体は変わらず実際に音が出る長さ(ゲートタイム)に影響します。
+</p>
+<table border="1" style="font-size:x-small">
+<tbody><tr><td>あ</td><td>　　</td><td>ぃあ</td><td>ぅあ</td><td>ぇあ</td><td>ぉあ</td><td>か</td><td>きゃ</td><td>が</td><td>ぎゃ</td><td>さ</td><td>しゃ</td><td>ざ</td><td>じゃ</td><td>た</td><td>つぁ</td><td>　　</td><td>ちゃ</td><td>だ　</td><td>　　</td><td>な</td><td>にゃ</td><td>は</td><td>ひゃ</td><td>ふぁ</td><td>ば</td><td>びゃ</td><td>ぱ</td><td>ぴゃ</td><td>ま</td><td>みゃ</td><td>や　</td><td>ら</td><td>りゃ</td><td>わ</td><td>ぁん</td></tr>
+<tr><td>い</td><td>ぁい</td><td>　　</td><td>ぅい</td><td>ぇい</td><td>ぉい</td><td>き</td><td>　　</td><td>ぎ</td><td>　　</td><td>し</td><td>　　</td><td>じ</td><td>　　</td><td>ち</td><td>つぃ</td><td>てぃ</td><td>　　</td><td>でぃ</td><td>　　</td><td>に</td><td>　　</td><td>ひ</td><td>　　</td><td>ふぃ</td><td>び</td><td>　　</td><td>ぴ</td><td>　　</td><td>み</td><td>　　</td><td>　　</td><td>り</td><td>　　</td><td>　</td><td>ぃん</td></tr>
+<tr><td>う</td><td>ぁう</td><td>ぃう</td><td>　　</td><td>ぇう</td><td>ぉう</td><td>く</td><td>きゅ</td><td>ぐ</td><td>ぎゅ</td><td>す</td><td>しゅ</td><td>ず</td><td>じゅ</td><td>つ</td><td>　　</td><td>　　</td><td>ちゅ</td><td>どぅ</td><td>でゅ</td><td>ぬ</td><td>にぅ</td><td>ふ</td><td>ひゅ</td><td>　　</td><td>ぶ</td><td>びゅ</td><td>ぷ</td><td>ぴゅ</td><td>む</td><td>みゅ</td><td>ゆ　</td><td>る</td><td>りゅ</td><td>　</td><td>ぅん</td></tr>
+<tr><td>え</td><td>ぁえ</td><td>ぃえ</td><td>ぅえ</td><td>　　</td><td>ぉえ</td><td>け</td><td>きぇ</td><td>げ</td><td>ぎぇ</td><td>せ</td><td>しぇ</td><td>ぜ</td><td>じぇ</td><td>て</td><td>つぇ</td><td>　　</td><td>ちぇ</td><td>で　</td><td>　　</td><td>ね</td><td>にぇ</td><td>へ</td><td>ひぇ</td><td>ふぇ</td><td>べ</td><td>びぇ</td><td>ぺ</td><td>ぴぇ</td><td>め</td><td>みぇ</td><td>いぇ</td><td>れ</td><td>りぇ</td><td>　</td><td>ぇん</td></tr>
+<tr><td>お</td><td>ぁお</td><td>ぃお</td><td>うぉ</td><td>ぇお</td><td>　　</td><td>こ</td><td>きょ</td><td>ご</td><td>ぎょ</td><td>そ</td><td>しょ</td><td>ぞ</td><td>じょ</td><td>と</td><td>つぉ</td><td>とぅ</td><td>ちょ</td><td>ど　</td><td>　　</td><td>の</td><td>にょ</td><td>ほ</td><td>ひょ</td><td>ふぉ</td><td>ぽ</td><td>びょ</td><td>ぽ</td><td>ぴょ</td><td>も</td><td>みょ</td><td>よ　</td><td>ろ</td><td>りょ</td><td>ん</td><td>ぉん</td></tr>
+</tbody></table>
+<hr>
+<h3>RenoidPlayer用のボイスファイルの付加情報について</h3>
+<p>RenoidPlayerが使用するSoundFontファイルには次の付加情報を追加する事ができます。これらの情報は
+RenoidPlayerが独自に解釈するものですので、通常のSoundFontファイルプレーヤーでは有効ではありません。
+</p>
+<h4>ファイル名</h4>
+<p>Renoid Playerは読み込むRenoidファイルのファイル名に(67-4)のような括弧で括られた付加情報がある場合、
+それを収録されている声の元のピッチ情報として使用します。書式は(nn-o)でnnの部分が収録されている声の音程を
+MIDIノート番号で表したもの、oの部分は演奏時のオクターブ指定で4が標準(A4のMIDIノートに対してA4の音を出す)
+です。オクターブ指定は女声の場合は4、男声の場合は3または2あたりが自然になると思います。
+</p>
+<p>この付加情報が無くても音を出す事はできますが、収録された元の音程によって演奏の音程が変わってしまいます。
+</p>
+<h4>タイミング指定</h4>
+<p>人間の声は発音によってタイミングがずれて聞こえますので、歌詞に関わらず同じリズムに聞こえるようにする
+には各音毎の発音タイミングを調整する必要があります。この調整をするには、サンプルの名前に "-12ms" のような
+指定を追加します。ここで指定する単位はミリ秒(mSec)で、指定した時間だけ早く音が出始めます。
+(例えばサ行の音は他の音よりも100msec近く早めに音を出し始めないと同じタイミングで聞こえません)
+</p>
+<p>現在<b><a href="http://reg.s63.xrea.com/">Renoise-gate</a></b>で配布されているRenoidファイルには
+すべてこれらの付加情報が付けられています。
+</p>
+</div>
+
+<div class="doc_en" style="display: none;">
+<h3>Lyrics</h3>
+<p>Lyrics can be described with 'Kana' character or alphabetic 'Roma-ji' representations.<br>
+All pronounciatins are based on Japanese mora per note. Available pronounciations are bellow.
+</p>
+<table border="1" style="font-size:small">
+<tbody><tr><td>あ<br>a</td><td>　　       </td><td>ぃあ<br>ia</td><td>ぅあ<br>ua</td><td>ぇあ<br>ea</td><td>ぉあ<br>oa</td><td>か<br>ka</td><td>きゃ<br>kya</td><td>が<br>ga</td><td>ぎゃ<br>gya</td><td>さ<br>sa</td><td>しゃ<br>sya</td><td>ざ<br>za</td><td>じゃ<br>jya</td><td>た<br>ta </td><td>つぁ<br>tza</td><td>       　　 </td><td>ちゃ<br>cha</td><td>だ　<br>da </td><td>　     　  </td><td>な<br>na</td><td>にゃ<br>nya</td><td>は<br>ha</td><td>ひゃ<br>hya</td><td>ふぁ<br>fa</td><td>ば<br>ba</td><td>びゃ<br>bya</td><td>ぱ<br>pa</td><td>ぴゃ<br>pya</td><td>ま<br>ma</td><td>みゃ<br>mya</td><td>や　<br>ya</td><td>ら<br>ra</td><td>りゃ<br>rya</td><td>わ<br>wa</td><td>ぁん<br>an</td></tr>
+<tr><td>い<br>i</td><td>ぁい<br>ai</td><td>　　       </td><td>ぅい<br>ui</td><td>ぇい<br>ei</td><td>ぉい<br>oi</td><td>き<br>ki</td><td>　　        </td><td>ぎ<br>gi</td><td>　　        </td><td>し<br>si</td><td>　　        </td><td>じ<br>ji</td><td>　　       </td><td>ち<br>chi</td><td>つぃ<br>tzi</td><td>てぃ<br>ti </td><td>　　        </td><td>でぃ<br>di </td><td>　　       </td><td>に<br>ni</td><td>　　        </td><td>ひ<br>hi</td><td>　　        </td><td>ふぃ<br>fi</td><td>び<br>bi</td><td>　　        </td><td>ぴ<br>pi</td><td>　　        </td><td>み<br>mi</td><td>　　        </td><td>　　       </td><td>り<br>ri</td><td>　　        </td><td>　        </td><td>ぃん<br>in</td></tr>
+<tr><td>う<br>u</td><td>ぁう<br>au</td><td>ぃう<br>iu</td><td>　　       </td><td>ぇう<br>eu</td><td>ぉう<br>ou</td><td>く<br>ku</td><td>きゅ<br>kyu</td><td>ぐ<br>gu</td><td>ぎゅ<br>gyu</td><td>す<br>su</td><td>しゅ<br>syu</td><td>ず<br>zu</td><td>じゅ<br>jyu</td><td>つ<br>tzu</td><td>　　        </td><td>　　        </td><td>ちゅ<br>chu</td><td>どぅ<br>du</td><td>でゅ<br>dyu</td><td>ぬ<br>nu</td><td>にぅ<br>nyu</td><td>ふ<br>hu</td><td>ひゅ<br>hyu</td><td>　　       </td><td>ぶ<br>bu</td><td>びゅ<br>byu</td><td>ぷ<br>pu</td><td>ぴゅ<br>pyu</td><td>む<br>mu</td><td>みゅ<br>myu</td><td>ゆ　<br>yu</td><td>る<br>ru</td><td>りゅ<br>ryu</td><td>        　</td><td>ぅん<br>un</td></tr>
+<tr><td>え<br>e</td><td>ぁえ<br>ae</td><td>ぃえ<br>ie</td><td>ぅえ<br>ue</td><td>　　       </td><td>ぉえ<br>oe</td><td>け<br>ke</td><td>きぇ<br>kye</td><td>げ<br>ge</td><td>ぎぇ<br>gye</td><td>せ<br>se</td><td>しぇ<br>sye</td><td>ぜ<br>ze</td><td>じぇ<br>jye</td><td>て<br>te </td><td>つぇ<br>tze</td><td>　　        </td><td>ちぇ<br>che</td><td>で　<br>de </td><td>　　       </td><td>ね<br>ne</td><td>にぇ<br>nye</td><td>へ<br>he</td><td>ひぇ<br>hye</td><td>ふぇ<br>fe</td><td>べ<br>be</td><td>びぇ<br>bye</td><td>ぺ<br>pe</td><td>ぴぇ<br>pye</td><td>め<br>me</td><td>みぇ<br>mye</td><td>いぇ<br>ye</td><td>れ<br>re</td><td>りぇ<br>rye</td><td>　        </td><td>ぇん<br>en</td></tr>
+<tr><td>お<br>o</td><td>ぁお<br>ao</td><td>ぃお<br>io</td><td>うぉ<br>uo</td><td>ぇお<br>eo</td><td>　　       </td><td>こ<br>ko</td><td>きょ<br>kyo</td><td>ご<br>go</td><td>ぎょ<br>gyo</td><td>そ<br>so</td><td>しょ<br>syo</td><td>ぞ<br>zo</td><td>じょ<br>jyo</td><td>と<br>to </td><td>つぉ<br>tzo</td><td>とぅ<br>tu</td><td>ちょ<br>cho</td><td>ど　<br>do </td><td>　　       </td><td>の<br>no</td><td>にょ<br>nyo</td><td>ほ<br>ho</td><td>ひょ<br>hyo</td><td>ふぉ<br>fo</td><td>ぽ<br>bo</td><td>びょ<br>byo</td><td>ぽ<br>po</td><td>ぴょ<br>pyo</td><td>も<br>mo</td><td>みょ<br>myo</td><td>よ　<br>yo</td><td>ろ<br>ro</td><td>りょ<br>ryo</td><td>ん<br>n  </td><td>ぉん<br>on</td></tr>
+</tbody></table>
+<hr>
+<h3>Renoid file name</h3>
+<p>If the Renoid voice's file-name include the additional information like '(67-4)', RenoidPlayer will use that
+as the 'Original Pitch information'.
+The format is (nn-o), that the 'nn' describes the original pitch with MIDI note number.
+The 'o' describes the playing octave that '4' as normal (A4 note will be played as A4).
+Normally, the '4' for female voices and '3' or '2' for male voices will fit.
+</p>
+<p>RenoidPlayer can play without this information but the playing pitch is changed depends on original pitch.
+</p>
+<p>Voice files on <b><a href="http://reg.s63.xrea.com/">Renoise-gate</a></b> are already added this information.
+</p>
+</div>
+<script type="text/javascript">
 
 var strpatch="";
 var renoidname="";
@@ -3163,3 +3869,14 @@ function ShowDoc(x) {
 function GetLang() {
   return (navigator.language || navigator.browserLanguage).substring(0, 2);
 }
+</script>
+</div>
+</div><ul id="webaudioctrl-context-menu"><li class="webaudioctrl-context-menu__title">MIDI Learn</li>
+<li class="webaudioctrl-context-menu__item" id="webaudioctrl-context-menu-learn" onclick="webAudioControlsMidiManager.contextMenuLearn()">Learn</li>
+<li class="webaudioctrl-context-menu__item" onclick="webAudioControlsMidiManager.contextMenuClear()">Clear</li>
+<li class="webaudioctrl-context-menu__item" onclick="webAudioControlsMidiManager.contextMenuClose()">Close</li>
+</ul>
+
+
+</body>
+</html>
